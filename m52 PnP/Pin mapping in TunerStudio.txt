@@ -1,0 +1,8 @@
+As Board Layout choose "Speeduino v0.4" and most of the pins will be "board default"
+
+But in addition to that:
+
+- Baro sensor: A5
+- CEL light on instrument cluster: D37
+- Spare relay output on external connector: D35
+- Two remaining relay outputs at ULN are unconnected, but inputs are wired to D33 and D31

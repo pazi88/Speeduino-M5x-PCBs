@@ -1,0 +1,10 @@
+As Board Layout choose "Speeduino v0.4" and most of the pins will be "board default"
+
+But in addition to that:
+
+- Baro sensor: A5
+- Vanos/VVT in m50tu: D11
+- DISA in m4x: D30
+- CEL light on instrument cluster: D26
+- Spare relay output on external connector: D28
+- Spare relay output on second external connector: D30 & D32
