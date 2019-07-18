@@ -8,3 +8,4 @@ But in addition to that:
 - CEL light on instrument cluster: D26
 - Spare relay output on external connector: D28
 - Spare relay output on second external connector: D30 & D32
+- A/C idle up input pin is D21
