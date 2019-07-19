@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <msq xmlns="http://www.msefi.com/:msq">
-<bibliography author="TunerStudio MS 3.0.28 - EFI Analytics, Inc." tuneComment="" writeDate="Thu Jul 18 23:53:15 EEST 2019"/>
+<bibliography author="TunerStudio MS 3.0.28 - EFI Analytics, Inc." tuneComment="" writeDate="Fri Jul 19 13:05:27 EEST 2019"/>
 <versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2019.05" nPages="11" signature="speeduino 201905"/>
 <page>
 <pcVariable name="tsCanId">"CAN ID 0"</pcVariable>
@@ -509,8 +509,8 @@
       </constant>
 </page>
 <page number="5" size="128">
-<constant name="egoAlgorithm">"PID"</constant>
-<constant name="egoType">"Disabled"</constant>
+<constant name="egoAlgorithm">"No correction"</constant>
+<constant name="egoType">"Wide Band"</constant>
 <constant name="boostEnabled">"Off"</constant>
 <constant name="vvtEnabled">"On"</constant>
 <constant name="boostCutType">"Spark Only"</constant>
