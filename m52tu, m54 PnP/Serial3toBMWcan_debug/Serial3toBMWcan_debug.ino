@@ -3,6 +3,8 @@
 #include <SPI.h>
 #include <mcp_can.h>
 
+volatile int mainLoopCount;
+
 const int SPI_CS_PIN = 10;
 
 MCP_CAN CAN(SPI_CS_PIN);                                    // Set CS pin
@@ -16,7 +18,7 @@ unsigned int RPM;
 
 long longRPM, MAPlong; //Has to be a long for PID calcs (Boost control)
 
-byte TPS;
+byte TPS,tempLight;
 byte response[100]; //storage buffer for realtime data i tried values 75 - 100 (100 works)
 
 int rpmLSB;   //RPM Least significant pit from RPM calc
@@ -28,29 +30,41 @@ void setup()
 {
 
   // SERIAL
-//  Serial.begin(9600);     // Serial monitor for debugging
-  Serial.begin(115200);    // Speedy Rx3 /Tx3 to SlaveMega2560 Tx3 - Rx3
+  Serial.begin(9600);     // Serial monitor for debugging
+  Serial3.begin(115200);    // Speedy Rx3 /Tx3 to SlaveMega2560 Tx3 - Rx3
   
       while (CAN_OK != CAN.begin(CAN_500KBPS))              // init can bus : baudrate = 500k
     {
- //       Serial.println("CAN BUS Shield init fail");
- //       Serial.println(" Init CAN BUS Shield again");
+        Serial.println("CAN BUS Shield init fail");
+        Serial.println(" Init CAN BUS Shield again");
         delay(100);
     }
- //    Serial.println("CAN BUS Shield init ok!");
+    Serial.println("CAN BUS Shield init ok!");
+	
+  data[0]= 0x02;  //error State
+  data[1]= 0x00;  //LSB Fuel consumption
+  data[2]= 0x00;  //MSB Fuel Consumption
+  data[3]= 0x00;  //Overheat light
+  data[4]= 0x7E;
+  data[5]= 0x10;
+  data[6]= 0x00;
+  data[7]= 0x18;
+	CAN.sendMsgBuf(0x545,0, 8, data);
 }
 void loop()
 {
-
-  Serial.write("A");            // sends speeduino "A" command to request realtime data
+ mainLoopCount++;
+  if ((mainLoopCount & 63) == 1)
+  {
+  Serial3.write("A");            // sends speeduino "A" command to request realtime data
   // Speedy sends an "A" back, and we need to account for this in the buffer, so we start the loop from -1 as its the first byte.
-  while (Serial.available() > 0) // while the data is availabe to Serial do subroutine below
+  while (Serial3.available() > 0) // while the data is availabe to Serial3 do subroutine below
 
   { // SERIAL_PACKET_SIZE   93 must match ochBlockSize in ini file
     for (i = -1; i < 93; i++)   // reads 93 SERIAL_PACKET and stores it all in buffer ready to read n print
 
     {
-      response[i] = Serial.read();
+      response[i] = Serial3.read();
     }
   }
 
@@ -128,19 +142,25 @@ void loop()
 
   */
 
- // PW1 = PW1raw / 1000;
+  PW1 = PW1raw / 1000;
   rpmMSB = RPM/40;
-
+  CLT=CLT+140;
+  
+  if(CLT>229){ // lights light if value is 229 (hot)
+    tempLight = 8;  // hex 08 = Overheat light on
+  }
+  else {
+    tempLight = 0; // hex 00 = overheat light off
+  }
   //----------------OUTPUT TO SERIAL MONITOR-------
 
 
 
-//    Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
-//    Serial.print ("MAP-"); Serial.print (PW1); Serial.print("\t");
-//    Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
-//    Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
-//    Serial.print (response[26]); Serial.println("\t");
-	
+    Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
+    Serial.print ("PW-"); Serial.print (PW1); Serial.print("\t");
+    Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
+    Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
+}  	
   //Send RPM
   
   data[1]= 0x07;
@@ -159,12 +179,21 @@ void loop()
   data[2]= 0xB2;
   data[3]= 0x19;
   data[4]= 0x0;
-  data[5]= TPS; //Throttle position currently just fixed value
+  data[5]= TPS;
   data[6]= 0x0;
   data[7]= 0x0;
   CAN.sendMsgBuf(0x329,0, 8, data);
 
-
-  delay(500);
+  // Send fuel consumption and error lights
+  
+  data[0]= 0x00;  //error State
+  data[1]= PW1;  //LSB Fuel consumption
+  data[2]= 0x00;  //MSB Fuel Consumption
+  data[3]= tempLight ;  //Overheat light
+  data[4]= 0x7E;
+  data[5]= 0x10;
+  data[6]= 0x00;
+  data[7]= 0x18;
+	CAN.sendMsgBuf(0x545,0, 8, data);
 
 }
