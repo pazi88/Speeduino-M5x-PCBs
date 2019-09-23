@@ -37,7 +37,9 @@ void setup()
         delay(100);
     }
     Serial.println("CAN BUS Shield init ok!");
-	
+
+  // send this message to get rid of EML light
+  
   data[0]= 0x02;  //error State
   data[1]= 0x00;  //LSB Fuel consumption
   data[2]= 0x00;  //MSB Fuel Consumption
@@ -48,21 +50,23 @@ void setup()
   data[7]= 0x18;
 	CAN.sendMsgBuf(0x545,0, 8, data);
 
+// zero out data to be sent by canbus
+
  CLT = 0;
  rpmLSB = 0;
  rpmMSB = 0;
  pwLSB = 0;
  pwMSB = 0;
  
-  // initialize timer1 
-  noInterrupts();           // disable all interrupts
+  // initialize timer1 to send can data in 25Hz rate
+  noInterrupts();
   TCCR1A = 0;
   TCCR1B = 0;
 
   TCNT1 = 63036;            // preload timer 65536-16MHz/256/25Hz
-  TCCR1B |= (1 << CS12);    // 256 prescaler 
-  TIMSK1 |= (1 << TOIE1);   // enable timer overflow interrupt
-  interrupts();             // enable all interrupts
+  TCCR1B |= (1 << CS12);
+  TIMSK1 |= (1 << TOIE1);
+  interrupts();
  
 }
 
@@ -122,18 +126,23 @@ void loop()
         response[i] = Serial3.read();
       }
     }
-  
+// put respose data to corresponding values
+
     CLT            = response[7];   // Int
     RPM            = ((response [15] << 8) | (response [14])); // RPM low & high (Int)
     pwLSB          = response[21];
     pwMSB          = response[22];
     TPS            = response[24];  // Byte
 
+// serial3 debug
+
       Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
       Serial.print ("pwLSB-"); Serial.print (pwLSB); Serial.print("\t");
       Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
       Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
-  
+
+// conversions
+
     RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
     rpmMSB = RPM >> 8;	//split to high and low byte
     rpmLSB = RPM;
