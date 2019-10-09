@@ -1,3 +1,6 @@
+// This code is meant to read real time data from Speeduino EFI using serial3 connection in speeduino and convert that to CAN messages for BMW e39/e46 instrument clusters
+// The hardware that the code is meant to be used is the built in CAN-bus interface in BMW m52tu/m54 speeduino PnP PCB that consists ATmega 328p processor and MCP2515+MCP2551 CAN bus chips. https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu%2C%20m54%20PnP
+// Created by pazi88 and there is no guarantee at all that any of this will work.
 
 #include <SPI.h>
 #include <mcp_can.h>
@@ -13,25 +16,16 @@ byte rpmMSB;  //RPM most significant byte for RPM message
 byte pwLSB;   //RPM Least significant byte for RPM message
 byte pwMSB;  //RPM most significant byte for RPM message
 byte CEL;   //timer for how long CEL light be kept on
+byte TPS;  //TPS value
+byte tempLight; // overheat light on/off
 int CLT;   // to store coolant temp
 unsigned int RPM;   //RPM from speeduino
-
-byte TPS,tempLight;   //TPS value and overheat light on/off
 
 uint8_t data[8];    // data that will be sent to CAN bus
 
 void setup(){
- Serial3.begin(115200);  // baudrate for Speeduino is 115200
- Serial.begin(9600); // for debugging
-
- 
-      while (CAN_OK != CAN.begin(CAN_500KBPS))              // init can bus : baudrate = 500k
-    {
-        Serial.println("CAN BUS Shield init fail");
-        Serial.println(" Init CAN BUS Shield again");
-        delay(100); //TBD figure out if this can be shorter or even needed
-    }
-    Serial.println("CAN BUS Shield init ok!");
+ Serial.begin(115200);  // baudrate for Speeduino is 115200
+      while (CAN_OK != CAN.begin(CAN_500KBPS)){}          // init can bus : baudrate = 500k
 
   // send this message to get rid of EML light
   
@@ -54,12 +48,12 @@ void setup(){
  pwMSB = 0;
  CEL = 0;
  
-  // initialize timer1 to send CAN data in 30Hz rate
+  // initialize timer1 to send CAN data in 32Hz rate (about)
   noInterrupts();
   TCCR1A = 0;
   TCCR1B = 0;
 
-  TCNT1 = 63456;            // preload timer 65536-16MHz/256/30Hz
+  TCNT1 = 63600;            // preload timer 
   TCCR1B |= (1 << CS12);
   TIMSK1 |= (1 << TOIE1);
   interrupts();
@@ -69,15 +63,7 @@ void setup(){
 
 //Send A to request data from Speeduio
 void requestData() {
-  Serial3.write("A");
-}
-
-//display the needed values in serial monitor for debugging
-void displayData(){
-      Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
-      Serial.print ("pwLSB-"); Serial.print (pwLSB); Serial.print("\t");
-      Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
-      Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
+  Serial.write("A");
 }
 
 void processData(){   // necessary conversion for the data before sending to CAN BUS
@@ -101,9 +87,9 @@ void processData(){   // necessary conversion for the data before sending to CAN
     }
 }
 
-ISR(TIMER1_OVF_vect)        // Send can messages every 30Hz from timer interrupt
+ISR(TIMER1_OVF_vect)        // Send can messages on timer interrupt
 {
-  TCNT1 = 63456;            // preload timer
+  TCNT1 = 63600;            // preload timer
   //Send RPM
   
   data[1]= 0x07;
@@ -128,12 +114,12 @@ ISR(TIMER1_OVF_vect)        // Send can messages every 30Hz from timer interrupt
   CAN.sendMsgBuf(0x329,0, 8, data);
 
   // Send fuel consumption and error lights
-  if (CEL < 60){
-    data[0]= 0x02;  //error State
+  if (CEL < 60){	// keep CEL on for about 2 seconds
+    data[0]= 0x02;  //CEL on
     CEL++;
   }
   else{
-    data[0]= 0x00;  //error State
+    data[0]= 0x00;  //CEL off
   }
   data[1]= pwLSB;  //LSB Fuel consumption (needs conversion, but this is what it is for now)
   data[2]= pwLSB;  //MSB Fuel Consumption
@@ -146,17 +132,16 @@ ISR(TIMER1_OVF_vect)        // Send can messages every 30Hz from timer interrupt
 }
 
 void loop() {
- if (Serial3.available () > 0) {  // read bytes from serial3
-   SpeedyResponse[ByteNumber ++] = Serial3.read();
+ if (Serial.available () > 0) {  // read bytes from serial
+   SpeedyResponse[ByteNumber ++] = Serial.read();
  }
  if (ByteNumber > 75){          // After 75 bytes all the data from speeduino has been received so time to process it (A + 74 databytes)
    oldtime = millis();          // All ok. zero out timeout calculation
    ByteNumber = 0;              // zero out the byte number pointer
    processData();               // do the necessary processing for received data
-   displayData();               // only required for debugging
    requestData();               //restart data reading
  }
-   if ( (millis()-oldtime) > 70) { // timeout if for some reason reading serial3 fails
+   if ( (millis()-oldtime) > 70) { // timeout if for some reason reading serial fails
     oldtime = millis();
     ByteNumber = 0;             // zero out the byte number pointer
     requestData();              //restart data reading

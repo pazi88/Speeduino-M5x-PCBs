@@ -1,40 +1,38 @@
+// This code is meant to read real time data from Speeduino EFI using serial3 connection in speeduino and convert that to CAN messages for BMW e39/e46 instrument clusters
+// The hardware that the code is meant to be used is Arduino Mega with SeedStudio CAN-bus shield including MCP2515+MCP2551 CAN bus chips.
+// Created by pazi88 and there is no guarantee at all that any of this will work.
 
 #include <SPI.h>
 #include <mcp_can.h>
 
-static uint32_t oldtime=millis();
+const int SPI_CS_PIN = 10;   // pin10 is wired as CS pin in the PCB
+MCP_CAN CAN(SPI_CS_PIN);     // Set CS pin in CAN library
 
-const int SPI_CS_PIN = 10;
+static uint32_t oldtime=millis();   // for the timeout
+byte SpeedyResponse[76]; //The data buffer for the serial3 data
+byte ByteNumber;  // pointer to which byte number we are reading currently
+byte rpmLSB;   //RPM Least significant byte for RPM message
+byte rpmMSB;  //RPM most significant byte for RPM message
+byte pwLSB;   //RPM Least significant byte for RPM message
+byte pwMSB;  //RPM most significant byte for RPM message
+byte CEL;   //timer for how long CEL light be kept on
+int CLT;   // to store coolant temp
+unsigned int RPM;   //RPM from speeduino
 
-MCP_CAN CAN(SPI_CS_PIN);                                    // Set CS pin
+byte TPS,tempLight;   //TPS value and overheat light on/off
 
-int CLT;
-int i;
+uint8_t data[8];    // data that will be sent to CAN bus
 
-unsigned int RPM;
+void setup(){
+ Serial3.begin(115200);  // baudrate for Speeduino is 115200
+ Serial.begin(9600); // for debugging
 
-byte TPS,tempLight;
-byte response[100]; //storage buffer for realtime data i tried values 75 - 100 (100 works)
-
-int rpmLSB;   //RPM Least significant byte for RPM message
-int rpmMSB;  //RPM most significant byte for RPM message
-int pwLSB;   //RPM Least significant byte for RPM message
-int pwMSB;  //RPM most significant byte for RPM message
-
-uint8_t data[8];
-
-void setup()
-{
-
-  // SERIAL
-  Serial.begin(9600);     // Serial monitor for debugging
-  Serial3.begin(115200);    // Speeduino serial3
-  
+ 
       while (CAN_OK != CAN.begin(CAN_500KBPS))              // init can bus : baudrate = 500k
     {
         Serial.println("CAN BUS Shield init fail");
         Serial.println(" Init CAN BUS Shield again");
-        delay(100);
+        delay(100); //TBD figure out if this can be shorter or even needed
     }
     Serial.println("CAN BUS Shield init ok!");
 
@@ -50,31 +48,65 @@ void setup()
   data[7]= 0x18;
 	CAN.sendMsgBuf(0x545,0, 8, data);
 
-// zero out data to be sent by canbus
+// zero the data to be sent by CAN bus, so it's not just random garbage
 
  CLT = 0;
  rpmLSB = 0;
  rpmMSB = 0;
  pwLSB = 0;
  pwMSB = 0;
+ CEL = 0;
  
-  // initialize timer1 to send can data in 25Hz rate
+	// initialize timer1 to send CAN data in 32Hz rate (about)
   noInterrupts();
   TCCR1A = 0;
   TCCR1B = 0;
 
-  TCNT1 = 63036;            // preload timer 65536-16MHz/256/25Hz
+  TCNT1 = 63600;            // preload timer
   TCCR1B |= (1 << CS12);
   TIMSK1 |= (1 << TOIE1);
   interrupts();
- 
+
+ requestData(); // all set. Start requesting data from speeduino
 }
 
-ISR(TIMER1_OVF_vect)        // Send can messages every 25Hz from timer interrupt
+//Send A to request data from Speeduio
+void requestData() {
+  Serial3.write("A");
+}
+
+//display the needed values in serial monitor for debugging
+void displayData(){
+      Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
+      Serial.print ("pwLSB-"); Serial.print (pwLSB); Serial.print("\t");
+      Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
+      Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
+}
+
+void processData(){   // necessary conversion for the data before sending to CAN BUS
+
+    RPM            = ((SpeedyResponse [16] << 8) | (SpeedyResponse [15])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+    pwLSB          = SpeedyResponse[22];
+    pwMSB          = SpeedyResponse[23];
+    TPS            = SpeedyResponse[25];  // Byte
+	
+    RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
+    rpmMSB = RPM >> 8;	//split to high and low byte
+    rpmLSB = RPM;
+    CLT = (SpeedyResponse[8])*1.3+14;	// CLT conversion factor for e46/e39 cluster
+    // actual calculation is (SpeedyResponse[8] -40)*4/3+64, but upper one has almost same result faster
+  		
+    if(CLT>229){ // overheat light on if value is 229 or higher
+      tempLight = 8;  // hex 08 = Overheat light on
+    }
+    else {
+      tempLight = 0; // hex 00 = overheat light off
+    }
+}
+
+ISR(TIMER1_OVF_vect)        // Send can messages every 30Hz from timer interrupt
 {
-  TCNT1 = 63036;            // preload timer
-
-
+  TCNT1 = 63600;            // preload timer
   //Send RPM
   
   data[1]= 0x07;
@@ -99,8 +131,13 @@ ISR(TIMER1_OVF_vect)        // Send can messages every 25Hz from timer interrupt
   CAN.sendMsgBuf(0x329,0, 8, data);
 
   // Send fuel consumption and error lights
-  
-  data[0]= 0x00;  //error State
+  if (CEL < 60){	// keep CEL on for about 2 seconds
+    data[0]= 0x02;  //CEL on
+    CEL++;
+  }
+  else{
+    data[0]= 0x00;  //CEL off
+  }
   data[1]= pwLSB;  //LSB Fuel consumption (needs conversion, but this is what it is for now)
   data[2]= pwLSB;  //MSB Fuel Consumption
   data[3]= tempLight ;  //Overheat light
@@ -111,50 +148,20 @@ ISR(TIMER1_OVF_vect)        // Send can messages every 25Hz from timer interrupt
   CAN.sendMsgBuf(0x545,0, 8, data);
 }
 
-void loop()
-{
-  if ( (millis()-oldtime) > 100) {
+void loop() {
+ if (Serial3.available () > 0) {  // read bytes from serial3
+   SpeedyResponse[ByteNumber ++] = Serial3.read();
+ }
+ if (ByteNumber > 75){          // After 75 bytes all the data from speeduino has been received so time to process it (A + 74 databytes)
+   oldtime = millis();          // All ok. zero out timeout calculation
+   ByteNumber = 0;              // zero out the byte number pointer
+   processData();               // do the necessary processing for received data
+   displayData();               // only required for debugging
+   requestData();               //restart data reading
+ }
+   if ( (millis()-oldtime) > 70) { // timeout if for some reason reading serial3 fails
     oldtime = millis();
-    Serial3.write("A");            // sends speeduino "A" command to request realtime data
-    // Speedy sends an "A" back, and we need to account for this in the buffer, so we start the loop from -1 as its the first byte.
-    while (Serial3.available() == 0) {} // while the data is availabe to Serial3 do subroutine below
-  
-    { // SERIAL_PACKET_SIZE   93 must match ochBlockSize in ini file
-      for (i = -1; i < 93; i++)   // reads 93 SERIAL_PACKET and stores it all in buffer ready to read n print
-  
-      {
-        response[i] = Serial3.read();
-      }
+    ByteNumber = 0;             // zero out the byte number pointer
+    requestData();              //restart data reading
     }
-// put respose data to corresponding values
-
-    CLT            = response[7];   // Int
-    RPM            = ((response [15] << 8) | (response [14])); // RPM low & high (Int)
-    pwLSB          = response[21];
-    pwMSB          = response[22];
-    TPS            = response[24];  // Byte
-
-// serial3 debug
-
-      Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
-      Serial.print ("pwLSB-"); Serial.print (pwLSB); Serial.print("\t");
-      Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
-      Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
-
-// conversions
-
-    RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
-    rpmMSB = RPM >> 8;	//split to high and low byte
-    rpmLSB = RPM;
-    CLT = (CLT-40) * (4/3) + 64;	// CLT conversion factor for e46/e39 cluster
-  		
-    if(CLT>229){ // overheat light on if value is 229 or higher
-      tempLight = 8;  // hex 08 = Overheat light on
-    }
-    else {
-      tempLight = 0; // hex 00 = overheat light off
-    }
-  
-
-  }
-}  
+}
