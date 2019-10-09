@@ -1,9 +1,17 @@
 // This code is meant to read real time data from Speeduino EFI using serial3 connection in speeduino and convert that to CAN messages for BMW e39/e46 instrument clusters
 // The hardware that the code is meant to be used is Arduino Mega with SeedStudio CAN-bus shield including MCP2515+MCP2551 CAN bus chips.
-// Created by pazi88 and there is no guarantee at all that any of this will work.
+// Created by pazi88 and there is no guarantee at all that any of this will work. Use Arduino Mega as board in Arduino IDE
+
+//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//THE SOFTWARE.
 
 #include <SPI.h>
-#include <mcp_can.h>
+#include "mcp_can.h"
 
 const int SPI_CS_PIN = 10;   // pin10 is wired as CS pin in the PCB
 MCP_CAN CAN(SPI_CS_PIN);     // Set CS pin in CAN library
