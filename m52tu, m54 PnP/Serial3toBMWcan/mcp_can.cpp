@@ -588,14 +588,14 @@ byte MCP_CAN::mcp2515_init(const byte canSpeed, const byte clock)
     if (res > 0)
     {
 #if DEBUG_EN
-      Serial.print("Enter setting mode fail\r\n");
+//      Serial.print("Enter setting mode fail\r\n");
 #else
       delay(10);
 #endif
       return res;
     }
 #if DEBUG_EN
-    Serial.print("Enter setting mode success \r\n");
+//    Serial.print("Enter setting mode success \r\n");
 #else
     delay(10);
 #endif
@@ -604,14 +604,14 @@ byte MCP_CAN::mcp2515_init(const byte canSpeed, const byte clock)
     if (mcp2515_configRate(canSpeed, clock))
     {
 #if DEBUG_EN
-      Serial.print("set rate fall!!\r\n");
+//      Serial.print("set rate fall!!\r\n");
 #else
       delay(10);
 #endif
       return res;
     }
 #if DEBUG_EN
-    Serial.print("set rate success!!\r\n");
+//    Serial.print("set rate success!!\r\n");
 #else
     delay(10);
 #endif
@@ -644,7 +644,7 @@ byte MCP_CAN::mcp2515_init(const byte canSpeed, const byte clock)
       if (res)
       {
 #if DEBUG_EN
-        Serial.print("Enter Normal Mode Fail!!\r\n");
+//        Serial.print("Enter Normal Mode Fail!!\r\n");
 #else
         delay(10);
 #endif
@@ -653,7 +653,7 @@ byte MCP_CAN::mcp2515_init(const byte canSpeed, const byte clock)
 
 
 #if DEBUG_EN
-      Serial.print("Enter Normal Mode Success!!\r\n");
+//      Serial.print("Enter Normal Mode Success!!\r\n");
 #else
       delay(10);
 #endif
@@ -914,14 +914,14 @@ byte MCP_CAN::init_Mask(byte num, byte ext, unsigned long ulData)
 {
     byte res = MCP2515_OK;
 #if DEBUG_EN
-    Serial.print("Begin to set Mask!!\r\n");
+//    Serial.print("Begin to set Mask!!\r\n");
 #else
     delay(10);
 #endif
     res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
     if (res > 0) {
 #if DEBUG_EN
-        Serial.print("Enter setting mode fall\r\n");
+//        Serial.print("Enter setting mode fall\r\n");
 #else
         delay(10);
 #endif
@@ -940,14 +940,14 @@ byte MCP_CAN::init_Mask(byte num, byte ext, unsigned long ulData)
     res = mcp2515_setCANCTRL_Mode(MODE_NORMAL);
     if (res > 0) {
 #if DEBUG_EN
-        Serial.print("Enter normal mode fall\r\n");
+//        Serial.print("Enter normal mode fall\r\n");
 #else
         delay(10);
 #endif
         return res;
     }
 #if DEBUG_EN
-    Serial.print("set Mask success!!\r\n");
+//    Serial.print("set Mask success!!\r\n");
 #else
     delay(10);
 #endif
@@ -962,7 +962,7 @@ byte MCP_CAN::init_Filt(byte num, byte ext, unsigned long ulData)
 {
     byte res = MCP2515_OK;
 #if DEBUG_EN
-    Serial.print("Begin to set Filter!!\r\n");
+//    Serial.print("Begin to set Filter!!\r\n");
 #else
     delay(10);
 #endif
@@ -970,7 +970,7 @@ byte MCP_CAN::init_Filt(byte num, byte ext, unsigned long ulData)
     if (res > 0)
     {
 #if DEBUG_EN
-        Serial.print("Enter setting mode fall\r\n");
+//        Serial.print("Enter setting mode fall\r\n");
 #else
         delay(10);
 #endif
@@ -1011,14 +1011,14 @@ byte MCP_CAN::init_Filt(byte num, byte ext, unsigned long ulData)
     if (res > 0)
     {
 #if DEBUG_EN
-        Serial.print("Enter normal mode fall\r\nSet filter fail!!\r\n");
+//        Serial.print("Enter normal mode fall\r\nSet filter fail!!\r\n");
 #else
         delay(10);
 #endif
         return res;
     }
 #if DEBUG_EN
-    Serial.print("set Filter success!!\r\n");
+//    Serial.print("set Filter success!!\r\n");
 #else
     delay(10);
 #endif
