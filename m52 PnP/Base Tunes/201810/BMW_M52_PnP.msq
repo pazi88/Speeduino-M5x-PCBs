@@ -303,7 +303,7 @@
 <constant name="TrigFilter">"Weak"</constant>
 <constant name="ignCranklock">"Off"</constant>
 <constant digits="1" name="dwellcrank" units="ms">6.0</constant>
-<constant digits="1" name="dwellrun" units="ms">2.0</constant>
+<constant digits="1" name="dwellrun" units="ms">1.5</constant>
 <constant digits="0" name="numTeeth" units="teeth">60.0</constant>
 <constant digits="0" name="missingTeeth" units="teeth">2.0</constant>
 <constant digits="0" name="crankRPM" units="rpm">400.0</constant>

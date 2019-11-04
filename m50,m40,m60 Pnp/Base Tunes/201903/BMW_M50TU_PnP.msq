@@ -285,11 +285,11 @@
 <constant digits="0" name="FixAng" units="Deg">0.0</constant>
 <constant digits="0" name="CrankAng" units="Deg">18.0</constant>
 <constant digits="0" name="TrigAngMul">0.0</constant>
-<constant name="TrigEdge">"FALLING"</constant>
+<constant name="TrigEdge">"RISING"</constant>
 <constant name="TrigSpeed">"Crank Speed"</constant>
 <constant name="IgInv">"Going Low"</constant>
 <constant name="TrigPattern">"Missing Tooth"</constant>
-<constant name="TrigEdgeSec">"FALLING"</constant>
+<constant name="TrigEdgeSec">"RISING"</constant>
 <constant name="fuelPumpPin">"Board Default"</constant>
 <constant name="useResync">"No"</constant>
 <constant digits="1" name="sparkDur" units="ms">1.0</constant>
@@ -304,7 +304,7 @@
 <constant name="TrigFilter">"Weak"</constant>
 <constant name="ignCranklock">"Off"</constant>
 <constant digits="1" name="dwellcrank" units="ms">6.0</constant>
-<constant digits="1" name="dwellrun" units="ms">2.0</constant>
+<constant digits="1" name="dwellrun" units="ms">1.5</constant>
 <constant digits="0" name="numTeeth" units="teeth">60.0</constant>
 <constant digits="0" name="missingTeeth" units="teeth">2.0</constant>
 <constant digits="0" name="crankRPM" units="rpm">400.0</constant>
