@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <msq xmlns="http://www.msefi.com/:msq">
-<bibliography author="TunerStudio MS Lite! 3.0.28 - EFI Analytics, Inc." tuneComment="" writeDate="Thu Sep 05 08:47:19 EEST 2019"/>
+<bibliography author="TunerStudio MS Lite! 3.0.28 - EFI Analytics, Inc." tuneComment="" writeDate="Mon Nov 04 12:22:33 EET 2019"/>
 <versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2019.09" nPages="11" signature="speeduino 201909"/>
 <page>
 <pcVariable name="tsCanId">"CAN ID 0"</pcVariable>
@@ -295,11 +295,11 @@
 <constant digits="0" name="FixAng" units="Deg">0.0</constant>
 <constant digits="0" name="CrankAng" units="Deg">18.0</constant>
 <constant digits="0" name="TrigAngMul">0.0</constant>
-<constant name="TrigEdge">"FALLING"</constant>
+<constant name="TrigEdge">"RISING"</constant>
 <constant name="TrigSpeed">"Crank Speed"</constant>
 <constant name="IgInv">"Going Low"</constant>
 <constant name="TrigPattern">"Missing Tooth"</constant>
-<constant name="TrigEdgeSec">"FALLING"</constant>
+<constant name="TrigEdgeSec">"RISING"</constant>
 <constant name="fuelPumpPin">"Board Default"</constant>
 <constant name="useResync">"No"</constant>
 <constant digits="1" name="sparkDur" units="ms">1.0</constant>
@@ -314,7 +314,7 @@
 <constant name="TrigFilter">"Weak"</constant>
 <constant name="ignCranklock">"Off"</constant>
 <constant digits="1" name="dwellcrank" units="ms">6.0</constant>
-<constant digits="1" name="dwellrun" units="ms">2.0</constant>
+<constant digits="1" name="dwellrun" units="ms">1.5</constant>
 <constant digits="0" name="numTeeth" units="teeth">60.0</constant>
 <constant digits="0" name="missingTeeth" units="teeth">2.0</constant>
 <constant digits="0" name="crankRPM" units="rpm">400.0</constant>
