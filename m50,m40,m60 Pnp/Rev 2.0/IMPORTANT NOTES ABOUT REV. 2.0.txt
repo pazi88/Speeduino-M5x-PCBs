@@ -1,0 +1,9 @@
+This revision 2.0 PCB is almost identical compared to revision 1.x PCBs. But with one major difference. The Rev 2.0
+supports 6cyl fully sequential. Unfortunately the 6-cyl fully seqential isn't yet supported in official Firmware.
+So to be able to use the 6-cyl fully sequential, this branch needs to be used: https://github.com/pazi88/speeduino/tree/6cyl_fully_seqvential_BMW
+
+Note that this comlicates setting to PCB for m50. For running the PCB with official firmware you need to regular BOM and jumper configuration. It's also
+important to lift up the pin-7 of the IC2 away from the PCB when runnin the non-sequential mode. Leaving it connected will lead to problems. And to
+run the 6-cyl fully sequential, you need to use the different BOM and jumper configuration that say "sequential" in combination with the custom FW. Note
+also that you can't mix the sequential and non-sequential BOM and jumper configuration. This will lead to non-working PCB.
+ 
