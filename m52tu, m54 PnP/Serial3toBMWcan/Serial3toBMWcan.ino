@@ -17,7 +17,7 @@ const int SPI_CS_PIN = 10;   // pin10 is wired as CS pin in the PCB
 MCP_CAN CAN(SPI_CS_PIN);     // Set CS pin in CAN library
 
 static uint32_t oldtime=millis();   // for the timeout
-byte SpeedyResponse[76]; //The data buffer for the serial3 data
+byte SpeedyResponse[100]; //The data buffer for the serial3 data
 byte ByteNumber;  // pointer to which byte number we are reading currently
 byte rpmLSB;   //RPM Least significant byte for RPM message
 byte rpmMSB;  //RPM most significant byte for RPM message
@@ -32,6 +32,8 @@ unsigned int RPM;   //RPM from speeduino
 uint8_t data[8];    // data that will be sent to CAN bus
 
 void setup(){
+ digitalWrite( 0, HIGH );
+ digitalWrite( 1, HIGH );
  Serial.begin(115200);  // baudrate for Speeduino is 115200
       while (CAN_OK != CAN.begin(CAN_500KBPS)){}          // init can bus : baudrate = 500k
 
@@ -147,9 +149,10 @@ void loop() {
    oldtime = millis();          // All ok. zero out timeout calculation
    ByteNumber = 0;              // zero out the byte number pointer
    processData();               // do the necessary processing for received data
+   delay(200); 
    requestData();               //restart data reading
  }
-   if ( (millis()-oldtime) > 70) { // timeout if for some reason reading serial fails
+   if ( (millis()-oldtime) > 100) { // timeout if for some reason reading serial fails
     oldtime = millis();
     ByteNumber = 0;             // zero out the byte number pointer
     requestData();              //restart data reading
