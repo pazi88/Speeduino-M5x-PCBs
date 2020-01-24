@@ -102,9 +102,8 @@ void processData(){   // necessary conversion for the data before sending to CAN
       pwMSB          = SpeedyResponse[ResponseLength - 2];
       TPS            = SpeedyResponse[ResponseLength + 1];
 
-      RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
-      rpmMSB = RPM >> 8;	//split to high and low byte
-      rpmLSB = RPM;
+      rpmMSB = RPM/40; // RPM conversion factor for e46/e39 cluster
+      
       if (ResponseLength > 12){ //in case of CLT is read, also calculate conversion for it
         CLT = (SpeedyResponse[2])*1.3+14;	// CLT conversion factor for e46/e39 cluster
       //   actual calculation is (SpeedyResponse[8] -40)*4/3+64, but upper one has almost same result faster
