@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <msq xmlns="http://www.msefi.com/:msq">
-<bibliography author="TunerStudio MS Lite! 3.1.01 - EFI Analytics, Inc." tuneComment="" writeDate="Fri Feb 07 09:51:12 EET 2020"/>
-<versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2019.12-dev" nPages="11" signature="speeduino 201912-6cyl-seq_dev"/>
+<bibliography author="TunerStudio MS Lite! 3.1.01 - EFI Analytics, Inc." tuneComment="" writeDate="Sun Feb 16 13:36:12 EET 2020"/>
+<versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2019.11" nPages="11" signature="speeduino 202002"/>
 <page>
 <pcVariable name="tsCanId">"CAN ID 0"</pcVariable>
 <pcVariable digits="0" name="rpmhigh" units="rpm">8000.0</pcVariable>
@@ -21,6 +21,136 @@
          -0.2 
          -0.1 
          0.0 
+      </pcVariable>
+<pcVariable cols="1" digits="0" name="boardFuelOutputs" rows="128" units=" ">
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         8.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
+         4.0 
       </pcVariable>
 <pcVariable cols="1" digits="0" name="algorithmLimits" rows="8">
          511.0 
@@ -72,8 +202,8 @@
 <constant name="displayB1">"RPM"</constant>
 <constant name="displayB2">"RPM"</constant>
 <constant digits="1" name="reqFuel" units="ms">14.7</constant>
-<constant digits="0" name="divider">6.0</constant>
-<constant name="alternate">"Simultaneous"</constant>
+<constant digits="0" name="divider">3.0</constant>
+<constant name="alternate">"Alternating"</constant>
 <constant name="multiplyMAP">"Yes"</constant>
 <constant name="includeAFR">"No"</constant>
 <constant name="hardCutType">"Full"</constant>
@@ -95,7 +225,7 @@
 <constant name="flexEnabled">"Off"</constant>
 <constant name="legacyMAP">"No"</constant>
 <constant name="baroCorr">"Off"</constant>
-<constant name="injLayout">"Sequential"</constant>
+<constant name="injLayout">"Paired"</constant>
 <constant name="perToothIgn">"No"</constant>
 <constant name="dfcoEnabled">"On"</constant>
 <constant digits="1" name="unused2-39" units="ms">25.5</constant>
@@ -165,9 +295,11 @@
 <constant name="idleAdvDelay">"0"</constant>
 <constant digits="0" name="idleAdvRPM" units="rpm">2000.0</constant>
 <constant digits="0" name="idleAdvTPS" units="%">5.0</constant>
-<constant digits="0" name="inj5Ang" units="deg">65535.0</constant>
-<constant digits="0" name="inj6Ang" units="deg">65535.0</constant>
-<constant cols="1" digits="0" name="unused2-99" rows="29" units="%">
+<constant cols="1" digits="0" name="unused2-95" rows="33" units="%">
+         255.0 
+         255.0 
+         255.0 
+         255.0 
          255.0 
          255.0 
          255.0 
@@ -316,7 +448,7 @@
 <constant digits="0" name="FixAng" units="Deg">0.0</constant>
 <constant digits="0" name="CrankAng" units="Deg">18.0</constant>
 <constant digits="0" name="TrigAngMul">0.0</constant>
-<constant name="TrigEdge">"FALLING"</constant>
+<constant name="TrigEdge">"RISING"</constant>
 <constant name="TrigSpeed">"Crank Speed"</constant>
 <constant name="IgInv">"Going Low"</constant>
 <constant name="TrigPattern">"Missing Tooth"</constant>
@@ -331,7 +463,7 @@
 <constant digits="0" name="SkipCycles" units="cycles">1.0</constant>
 <constant name="boostType">"Open Loop"</constant>
 <constant name="useDwellLim">"On"</constant>
-<constant name="sparkMode">"Wasted COP"</constant>
+<constant name="sparkMode">"Wasted Spark"</constant>
 <constant name="TrigFilter">"Weak"</constant>
 <constant name="ignCranklock">"Off"</constant>
 <constant digits="1" name="dwellcrank" units="ms">6.0</constant>
@@ -402,7 +534,7 @@
 <constant digits="0" name="ADCFILTER_TPS" units="%">50.0</constant>
 <constant digits="0" name="ADCFILTER_CLT" units="%">180.0</constant>
 <constant digits="0" name="ADCFILTER_IAT" units="%">180.0</constant>
-<constant digits="0" name="ADCFILTER_O2" units="%">100.0</constant>
+<constant digits="0" name="ADCFILTER_O2" units="%">128.0</constant>
 <constant digits="0" name="ADCFILTER_BAT" units="%">128.0</constant>
 <constant digits="0" name="ADCFILTER_MAP" units="%">20.0</constant>
 <constant digits="0" name="ADCFILTER_BARO" units="%">64.0</constant>
@@ -542,7 +674,7 @@
 <constant name="egoAlgorithm">"No correction"</constant>
 <constant name="egoType">"Wide Band"</constant>
 <constant name="boostEnabled">"Off"</constant>
-<constant name="vvtEnabled">"On"</constant>
+<constant name="vvtEnabled">"Off"</constant>
 <constant name="boostCutType">"Spark Only"</constant>
 <constant digits="0" name="egoKP" units="%">35.0</constant>
 <constant digits="0" name="egoKI" units="%">7.0</constant>
@@ -1069,7 +1201,10 @@
 <constant name="canoutput_param_num_bytes0">"2"</constant>
 <constant name="canoutput_param_num_bytes1">"1"</constant>
 <constant name="canoutput_param_num_bytes2">"1"</constant>
+<constant name="canoutput_param_num_bytes3">"1"</constant>
 <constant name="canoutput_param_num_bytes4">"1"</constant>
+<constant name="canoutput_param_num_bytes5">"1"</constant>
+<constant name="canoutput_param_num_bytes6">"1"</constant>
 <constant name="canoutput_param_num_bytes7">"1"</constant>
 <constant digits="0" name="unused10_110">255.0</constant>
 <constant digits="0" name="unused10_111">255.0</constant>
@@ -1381,7 +1516,7 @@
          0.0 
       </constant>
 <constant digits="0" name="UNALLOCATED_TOP_9" units="RAW">
-         255.0 
+         30.0 
       </constant>
 </page>
 <page number="10" size="288">
@@ -1444,8 +1579,8 @@
 <setting name="enablehardware_test" value="enablehardware_test"/>
 <setting name="CAN_COMMANDS_OFF" value="CAN_COMMANDS_OFF"/>
 <setting name="CELSIUS" value="CELSIUS"/>
+<setting name="resetcontrol_standard" value="resetcontrol_standard"/>
 <setting name="AFR" value="AFR"/>
-<setting name="resetcontrol_adv" value="resetcontrol_adv"/>
 </settings>
 <userComments Comment="These are user comments that can be related to a particular setting or dialog.">
 <userComment name="idleUpPolarity" value=""/>
