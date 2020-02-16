@@ -186,7 +186,7 @@
          100.0 
       </constant>
 <constant digits="0" name="crankingPct" units="%">20.0</constant>
-<constant name="pinLayout">"BMW PnP"</constant>
+<constant name="pinLayout">"Speeduino v0.4"</constant>
 <constant name="tachoPin">"Board Default"</constant>
 <constant name="tachoDiv">"Normal"</constant>
 <constant digits="0" name="tachoDuration" units="ms">1.0</constant>
