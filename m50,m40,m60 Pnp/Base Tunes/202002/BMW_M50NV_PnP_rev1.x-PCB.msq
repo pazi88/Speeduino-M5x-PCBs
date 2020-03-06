@@ -226,7 +226,7 @@
 <constant name="legacyMAP">"No"</constant>
 <constant name="baroCorr">"Off"</constant>
 <constant name="injLayout">"Paired"</constant>
-<constant name="perToothIgn">"No"</constant>
+<constant name="perToothIgn">"Yes"</constant>
 <constant name="dfcoEnabled">"On"</constant>
 <constant digits="1" name="unused2-39" units="ms">25.5</constant>
 <constant digits="0" name="dutyLim" units="%">90.0</constant>
