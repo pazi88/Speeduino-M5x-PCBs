@@ -1,20 +1,21 @@
 Possible jumper configurations on PCB:
 
 For M50NV Connect: 3,5,9,11,14,18,19,20,28,29, JP21:1-2, JP22:2-3, JP4:2-3
-For M50TU Connect: 1,3,5,9,11,14,18,19,20,28,29,30, JP21:2-3, JP22:1-2, JP4:1-2
+For M50TU Connect: 1,3,5,9,11,14,18,19,20,28,29,30, JP31:1-2, JP21:2-3, JP22:1-2, JP4:1-2
 For M4x Connect: 8,15,16,17,26,27, JP21:1-2, JP22:2-3, JP4:2-3
 For M60 Connect: 2,6,710,11,12,13,25,28,29, JP21:2-3, JP22:1-2, JP4:2-3
 
 Valid for rev 2.0 onwards:´
 For M50NV seqvential Connect: 6,10,11,14,20,28,29, JP21:1-2, JP22:2-3, JP4:2-3
-For M50TU seqvential Connect: 1,6,10,11,14,20,28,29,30, JP21:2-3, JP22:1-2, JP4:1-2
+For M50TU seqvential Connect: 1,6,10,11,14,20,28,29,30, JP31:1-2, JP21:2-3, JP22:1-2, JP4:1-2
 
 Using hall type sensors instead of stock vr:
 
 JP23 and JP24 are used to power optional hall sensors with 5v or 12v. Do not use these with VR conditioner!
 Power will be sent to pin2 in the sensor connector. Pin 1 will be signal and pin 3 is ground.
 If sensors require pull-up resistor, the R39 is used for that for crank and R40 is for cam.
-In addition to that R59 and R60 need to be added to get the signal to processor when VR-conditioner is not used.
+In addition to that R59 and R60 need to be added to get the signal to processor when VR-conditioner is not used and
+you need to jumper 2-3 in JP31.
 
 ALSO NOTE that do not install the vr-conditioner when hall sensor(s) are used.
 
