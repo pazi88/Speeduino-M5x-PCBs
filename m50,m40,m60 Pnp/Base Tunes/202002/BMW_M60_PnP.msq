@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <msq xmlns="http://www.msefi.com/:msq">
-<bibliography author="TunerStudio MS Lite! 3.1.02 - EFI Analytics, Inc." tuneComment="" writeDate="Wed Mar 18 09:22:17 EET 2020"/>
+<bibliography author="TunerStudio MS Lite! 3.1.02 - EFI Analytics, Inc." tuneComment="" writeDate="Wed Mar 18 09:29:57 EET 2020"/>
 <versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2020.02" nPages="11" signature="speeduino 202002"/>
 <page>
 <pcVariable name="tsCanId">"CAN ID 0"</pcVariable>
@@ -235,8 +235,8 @@
 <constant digits="0" name="boostMaxDuty" units="%">80.0</constant>
 <constant digits="0" name="tpsMin" units="ADC">43.0</constant>
 <constant digits="0" name="tpsMax" units="ADC">197.0</constant>
-<constant digits="0" name="mapMin" units="kpa">3.0</constant>
-<constant digits="0" name="mapMax" units="kpa">416.0</constant>
+<constant digits="0" name="mapMin" units="kpa">10.0</constant>
+<constant digits="0" name="mapMax" units="kpa">260.0</constant>
 <constant digits="0" name="fpPrime" units="s">3.0</constant>
 <constant digits="1" name="stoich" units=":1">14.7</constant>
 <constant digits="0" name="oddfire2" units="deg">0.0</constant>
@@ -402,9 +402,9 @@
          4.0 5.0 8.0 10.0 12.0 15.0 17.0 18.0 20.0 19.0 18.0 18.0 18.0 19.0 19.0 20.0 
          1.0 2.0 4.0 7.0 8.0 11.0 13.0 15.0 16.0 16.0 15.0 15.0 15.0 15.0 16.0 16.0 
          -1.0 -1.0 1.0 3.0 5.0 8.0 10.0 11.0 13.0 12.0 11.0 11.0 11.0 12.0 12.0 13.0 
-         -4.0 -4.0 -2.0 0.0 1.0 4.0 6.0 7.0 9.0 9.0 8.0 8.0 8.0 8.0 9.0 9.0 
-         -4.0 -4.0 -3.0 -2.0 -1.0 2.0 4.0 5.0 6.0 6.0 5.0 5.0 5.0 6.0 6.0 7.0 
-         -3.0 -4.0 -3.0 -3.0 -3.0 -1.0 1.0 3.0 4.0 4.0 3.0 3.0 3.0 3.0 4.0 5.0 
+         -4.0 -4.0 -2.0 0.0 1.0 4.0 6.0 7.0 9.0 10.0 9.0 9.0 9.0 9.0 10.0 10.0 
+         -3.0 -3.0 -2.0 -1.0 0.0 3.0 5.0 6.0 7.0 7.0 6.0 6.0 6.0 7.0 7.0 8.0 
+         -2.0 -3.0 -2.0 -2.0 -2.0 0.0 2.0 4.0 5.0 5.0 4.0 4.0 4.0 4.0 5.0 6.0 
       </constant>
 <constant cols="1" digits="0" name="rpmBins2" rows="16" units="RPM">
          600.0 
