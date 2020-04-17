@@ -1,0 +1,20 @@
+The can bus is 500kb/s
+In the data for each ID there are 8 bytes. Labeled Byte 0,1,2,3,4,5,6,7
+
+ARBID: 0x153 (ASC1)
+ARBID: 0x316 (DME1) byte 02 and 03 contain the RPM (LSB is B2, MSB B3) [RPM=(hex2dec("byte3"&"byte2"))/6.4]
+ARBID: 0x329 (DME2)
+__B1 is Temp [Temp in C = .75 * hex2dec(byte01) - 48.373]
+__B5 Throttle position (00-FE).
+__B6 kickdown switch depressed is value (4) Brake pedal depressed is value (1).
+ARBID: 0x615 sent from the instrument cluster. B3 Looks like it is a status message
+ARBID: 0x613 also sent from the instrumnet cluster if 0x615 is acknowleged.
+__B0,B1 are the Odometer reading. (LSB B0, MSB B3) Convert from Hex to Decimal. Multiply by 10 and that is Odometer in Km
+__B2 is fuel level. Full being hex 39 Fuel light comes on at hex 8. Then values jump to hex 87 (or so) and then go down to hex 80 being empty.
+__B3,B4 (B4 the MSB) is a running clock in minutes since last time battery power was lost.
+ARBID: 0x545 (DME4)
+__B0 Check engine light (binary 10), Cruise light (binary 1000), EML (binary 10000). combinations work to get multiple lights
+__B1,B2 Fuel consumption (B1 LSB, MSB B2). Values is the rate of change. Values just cycle from 0 to FFFF the jump to zero and start over.
+__B3 Overheat light (binary 1000, Hex 08)
+ARBID: 0x1F8
+__B2, Brake Pressure.
