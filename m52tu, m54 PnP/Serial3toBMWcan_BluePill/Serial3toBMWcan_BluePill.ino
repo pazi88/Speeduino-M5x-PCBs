@@ -13,6 +13,7 @@
 #ifdef ARDUINO_BLUEPILL_F103C8
 HardwareSerial Serial3(USART3); //for some reason this isn't defined in arduino_core_stm32
 #endif
+#define pin  LED_BUILTIN
 
 enum BITRATE{CAN_50KBPS, CAN_100KBPS, CAN_125KBPS, CAN_250KBPS, CAN_500KBPS, CAN_1000KBPS};
 typedef struct
@@ -124,11 +125,10 @@ void CANSend(CAN_msg_t* CAN_tx_msg) // CAN message send routine
 
 void SendData(HardwareTimer*)       // Send can messages in 32Hz phase from timer interrupt. This is important to make cluster work smoothly
 {
-  
+  digitalWrite(pin, !digitalRead(pin)); // Just to see with internal led that CAN messages are being sent
   CAN_msg_RPM.data[2]= rpmLSB; //RPM LSB
   CAN_msg_RPM.data[3]= rpmMSB; //RPM MSB
   CANSend(&CAN_msg_RPM);
-
   //Send CLT and TPS
   
   CAN_msg_CLT_TPS.data[1]= CLT; //Coolant temp
@@ -147,10 +147,11 @@ void SendData(HardwareTimer*)       // Send can messages in 32Hz phase from time
   CAN_msg_MPG_CEL.data[2]= pwLSB;  //MSB Fuel Consumption
   CAN_msg_MPG_CEL.data[3]= tempLight ;  //Overheat light
   CANSend(&CAN_msg_MPG_CEL);
-  Serial.print ("CAN-data sent"); Serial.println("\t");
+
 }
  
 void setup(){
+ pinMode(pin, OUTPUT);
  Serial3.begin(115200);  // baudrate for Speeduino is 115200
  Serial.begin(115200); // for debugging
 
@@ -210,6 +211,7 @@ void setup(){
   HardwareTimer *SendTimer = new HardwareTimer(Instance);
   SendTimer->setOverflow(32, HERTZ_FORMAT); // 32 Hz
   SendTimer->attachInterrupt(SendData);
+  SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
   SendTimer->resume();
     
  requestData(); // all set. Start requesting data from speeduino
