@@ -33,7 +33,7 @@ CAN_bit_timing_config_t can_configs[6] = {{2, 13, 45}, {2, 15, 20}, {2, 13, 18},
 
 extern CAN_bit_timing_config_t can_configs[6];
 static uint32_t oldtime=millis();   // for the timeout
-byte SpeedyResponse[24]; //The data buffer for the serial3 data
+byte SpeedyResponse[100]; //The data buffer for the serial3 data. This is longer than needed, just in case
 byte ByteNumber;  // pointer to which byte number we are reading currently
 byte rpmLSB;   //RPM Least significant byte for RPM message
 byte rpmMSB;  //RPM most significant byte for RPM message
@@ -43,8 +43,7 @@ byte CEL;   //timer for how long CEL light be kept on
 byte readCLT; // CLT doesn't need to be updated very ofter so 
 uint32_t updatePW;
 int CLT;   // to store coolant temp
-byte ResponseLength; // how long response is asked from speeduino
-unsigned int RPM,PW,PWcount;   //RPM from speeduino
+unsigned int RPM,PW,PWcount;   //RPM and PW from speeduino
 byte TPS,tempLight;   //TPS value and overheat light on/off
 
 CAN_msg_t CAN_msg_RPM;    // CAN message for RPM
@@ -236,25 +235,8 @@ void setup(){
  requestData(); // all set. Start requesting data from speeduino
 }
 
-//Send r to request data from Speeduio
 void requestData() {
-  // we don't need to read CLT very often, so only read once in every 20 messages
-  readCLT++;
-  if (readCLT >20){
-      ResponseLength = 18; // to fit CLT and TPS we need 18 bytes
-      readCLT = 0;  
-    }
-    else{
-      ResponseLength = 11; // to fit RPM and TPS we need 11 bytes
-    }
-  
-  Serial3.write("r"); //new type real time data
-  Serial3.write(0x00);	//Speeduino TS canID, not used atm
-  Serial3.write(0x30);	//command type, 0x30 for real time data
-  Serial3.write(-ResponseLength +25); //offset for the data. 7 with CLT, 14 without
-  Serial3.write(0x00); // offset is in 2 bytes. LSB first
-  Serial3.write(ResponseLength);	//how mony bytes we need back.
-  Serial3.write(0x00); // number of bytes is in 2 bytes. LSB first
+  Serial3.write("A"); //Send A to request real time data
 }
 
 //display the needed values in serial monitor for debugging
@@ -267,33 +249,22 @@ void displayData(){
 }
 
 void processData(){   // necessary conversion for the data before sending to CAN BUS
-    if(SpeedyResponse[1] == 0x30){ //if there is wrong data, filter it out
-      RPM            = ((SpeedyResponse [ResponseLength - 8] << 8) | (SpeedyResponse [ResponseLength - 9])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
-      PW            = ((SpeedyResponse [ResponseLength - 2] << 8) | (SpeedyResponse [ResponseLength - 3])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
-      TPS            = SpeedyResponse[ResponseLength + 1];
+
+      RPM            = ((SpeedyResponse [16] << 8) | (SpeedyResponse [15])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+      PW            = ((SpeedyResponse [23] << 8) | (SpeedyResponse [22])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+      TPS            = SpeedyResponse[25];
   	
     RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster   
     rpmMSB = RPM >> 8;  //split to high and low byte
     rpmLSB = RPM;
-
-      if (ResponseLength > 12){ //in case of CLT is read, also calculate conversion for it
-        CLT = (SpeedyResponse[2] -40)*4/3+64;	// CLT conversion factor for e46/e39 cluster
-      		
-        if(CLT>229){ // overheat light on if value is 229 or higher
-          tempLight = 8;  // hex 08 = Overheat light on
-        }
-        else {
-          tempLight = 0; // hex 00 = overheat light off
-        }
-      }
-    }
+    CLT = (SpeedyResponse[8] -40)*4/3+64;	// CLT conversion factor for e46/e39 cluster
 }
 
 void loop() {
  if (Serial3.available () > 0) {  // read bytes from serial3
    SpeedyResponse[ByteNumber ++] = Serial3.read();
  }
- if (ByteNumber > (ResponseLength +1)){          // After the data from speeduino has been received so time to process it
+ if (ByteNumber > (75)){          // After 75 bytes all the data from speeduino has been received so time to process it (A + 74 databytes)
    oldtime = millis();          // All ok. zero out timeout calculation
    ByteNumber = 0;              // zero out the byte number pointer
    processData();               // do the necessary processing for received data
