@@ -41,9 +41,10 @@ byte pwLSB;   //RPM Least significant byte for RPM message
 byte pwMSB;  //RPM most significant byte for RPM message
 byte CEL;   //timer for how long CEL light be kept on
 byte readCLT; // CLT doesn't need to be updated very ofter so 
+uint32_t updatePW;
 int CLT;   // to store coolant temp
 byte ResponseLength; // how long response is asked from speeduino
-unsigned int RPM;   //RPM from speeduino
+unsigned int RPM,PW,PWcount;   //RPM from speeduino
 byte TPS,tempLight;   //TPS value and overheat light on/off
 
 CAN_msg_t CAN_msg_RPM;    // CAN message for RPM
@@ -136,14 +137,30 @@ void SendData(HardwareTimer*)       // Send can messages in 32Hz phase from time
   CANSend(&CAN_msg_CLT_TPS);
 
   // Send fuel consumption and error lights
-  if (CEL < 60){  // keep CEL on for about 2 seconds
-    CAN_msg_MPG_CEL.data[0]= 0x02;  //CEL on
+  if (CEL < 120){  
+    if (CEL < 60){
+      CAN_msg_MPG_CEL.data[0]= 0x12;  // keep CEL And EML on for about 2 seconds
+    }
+    else{
+      CAN_msg_MPG_CEL.data[0]= 0x02;  // keep CEL on for about 4 seconds
+      }
     CEL++;
-  }
+    }
   else{
     CAN_msg_MPG_CEL.data[0]= 0x00;  //CEL off
   }
-  CAN_msg_MPG_CEL.data[1]= pwLSB;  //LSB Fuel consumption (needs conversion, but this is what it is for now)
+  updatePW = updatePW + PW;
+    if (updatePW > 50000){
+      PWcount = PWcount+1; // fuel consumption is measured by rate of change in instrument cluster. So PW counter is increased by steps of one. And rate of update depends on PW from speeduino. This isn't yet working correctly.
+      if (PWcount == 0xFFFF)
+      {
+        PWcount = 0;
+      }
+      updatePW = 0;
+    }
+  pwMSB = PWcount >> 8;  //split to high and low byte
+  pwLSB = PWcount;
+  CAN_msg_MPG_CEL.data[1]= pwLSB;  //LSB Fuel consumption
   CAN_msg_MPG_CEL.data[2]= pwLSB;  //MSB Fuel Consumption
   CAN_msg_MPG_CEL.data[3]= tempLight ;  //Overheat light
   CANSend(&CAN_msg_MPG_CEL);
@@ -194,6 +211,8 @@ void setup(){
 // zero the data to be sent by CAN bus, so it's not just random garbage
 
  CLT = 0;
+ PW = 0;
+ PWcount = 0;
  rpmLSB = 0;
  rpmMSB = 0;
  pwLSB = 0;
@@ -241,7 +260,7 @@ void requestData() {
 //display the needed values in serial monitor for debugging
 void displayData(){
       Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
-      Serial.print ("pwMSB-"); Serial.print (pwMSB); Serial.print("\t");
+      Serial.print ("PW-"); Serial.print (PWcount); Serial.print("\t");
       Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
       Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
 
@@ -250,11 +269,10 @@ void displayData(){
 void processData(){   // necessary conversion for the data before sending to CAN BUS
     if(SpeedyResponse[1] == 0x30){ //if there is wrong data, filter it out
       RPM            = ((SpeedyResponse [ResponseLength - 8] << 8) | (SpeedyResponse [ResponseLength - 9])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
-      pwLSB          = SpeedyResponse[ResponseLength - 3];
-      pwMSB          = SpeedyResponse[ResponseLength - 2];
+      PW            = ((SpeedyResponse [ResponseLength - 2] << 8) | (SpeedyResponse [ResponseLength - 3])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
       TPS            = SpeedyResponse[ResponseLength + 1];
   	
-    RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
+    RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster   
     rpmMSB = RPM >> 8;  //split to high and low byte
     rpmLSB = RPM;
 
@@ -282,7 +300,7 @@ void loop() {
    displayData();               // only required for debugging
    requestData();               //restart data reading
  }
-   if ( (millis()-oldtime) > 70) { // timeout if for some reason reading serial3 fails
+   if ( (millis()-oldtime) > 500) { // timeout if for some reason reading serial3 fails
     oldtime = millis();
     ByteNumber = 0;             // zero out the byte number pointer
     requestData();              //restart data reading
