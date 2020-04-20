@@ -35,10 +35,10 @@ extern CAN_bit_timing_config_t can_configs[6];
 static uint32_t oldtime=millis();   // for the timeout
 byte SpeedyResponse[100]; //The data buffer for the serial3 data. This is longer than needed, just in case
 byte ByteNumber;  // pointer to which byte number we are reading currently
-byte rpmLSB;   //RPM Least significant byte for RPM message
-byte rpmMSB;  //RPM most significant byte for RPM message
-byte pwLSB;   //RPM Least significant byte for RPM message
-byte pwMSB;  //RPM most significant byte for RPM message
+byte rpmLSB;   // Least significant byte for RPM message
+byte rpmMSB;  // Most significant byte for RPM message
+byte pwLSB;   // Least significant byte for PW message
+byte pwMSB;  // Most significant byte for PW message
 byte CEL;   //timer for how long CEL light be kept on
 byte readCLT; // CLT doesn't need to be updated very ofter so 
 uint32_t updatePW;
@@ -149,7 +149,7 @@ void SendData(HardwareTimer*)       // Send can messages in 32Hz phase from time
     CAN_msg_MPG_CEL.data[0]= 0x00;  //CEL off
   }
   updatePW = updatePW + PW;
-    if (updatePW > 50000){
+    if (updatePW > 5000){
       PWcount = PWcount+1; // fuel consumption is measured by rate of change in instrument cluster. So PW counter is increased by steps of one. And rate of update depends on PW from speeduino. This isn't yet working correctly.
       if (PWcount == 0xFFFF)
       {
@@ -217,7 +217,6 @@ void setup(){
  pwLSB = 0;
  pwMSB = 0;
  CEL = 0;
- ResponseLength = 18; //start with coolant also
  readCLT = 20;
 
 //setup hardwaretimer to send data for instrument cluster in 32Hz pace
@@ -227,7 +226,7 @@ void setup(){
   TIM_TypeDef *Instance = TIM2;
 #endif
   HardwareTimer *SendTimer = new HardwareTimer(Instance);
-  SendTimer->setOverflow(32, HERTZ_FORMAT); // 32 Hz
+  SendTimer->setOverflow(25, HERTZ_FORMAT); // 25 Hz
   SendTimer->attachInterrupt(SendData);
   SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
   SendTimer->resume();
@@ -242,7 +241,8 @@ void requestData() {
 //display the needed values in serial monitor for debugging
 void displayData(){
       Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
-      Serial.print ("PW-"); Serial.print (PWcount); Serial.print("\t");
+      Serial.print ("PW-"); Serial.print (PW); Serial.print("\t");
+      Serial.print ("PWcount-"); Serial.print (PWcount); Serial.print("\t");
       Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
       Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
 
@@ -251,7 +251,7 @@ void displayData(){
 void processData(){   // necessary conversion for the data before sending to CAN BUS
 
       RPM            = ((SpeedyResponse [16] << 8) | (SpeedyResponse [15])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
-      PW            = ((SpeedyResponse [23] << 8) | (SpeedyResponse [22])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+      PW            = ((SpeedyResponse [22] << 8) | (SpeedyResponse [21])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
       TPS            = SpeedyResponse[25];
   	
     RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster   
