@@ -473,7 +473,7 @@
 <constant digits="0" name="crankRPM" units="rpm">400.0</constant>
 <constant digits="0" name="tpsflood" units="%">80.0</constant>
 <constant digits="0" name="SoftRevLim" units="rpm">6500.0</constant>
-<constant digits="0" name="SoftLimRetard" units="deg">20.0</constant>
+<constant digits="0" name="SoftLimRetard" units="deg">7.0</constant>
 <constant digits="1" name="SoftLimMax" units="s">2.0</constant>
 <constant digits="0" name="HardRevLim" units="rpm">7000.0</constant>
 <constant cols="1" digits="0" name="taeBins" rows="4" units="%/s">
