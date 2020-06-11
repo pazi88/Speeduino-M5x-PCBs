@@ -1,11 +1,11 @@
 # Speeduino Compatible PCBs for BMW M52TU and M54 engines
-![alt text] (https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/rev12.jpg)
+![alt text] (https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/rev12.jpg?raw=true)
 
 This is folder for Speeduino Compatible PCBs that can be used with BMW M52TU and M54 engine in PnP fashion. This PCB will replace the
 original board in ms42/ms43 ecu case. Just open the 4 bolts in the ecu case, remove original board and replace with this. Last step is
 to carve some openings for the extra connectors and the ecu can be plugged into car.
 
-![alt text] (https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/withcase.jpg)
+![alt text] (https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/withcase.jpg?raw=true)
 
 Some of the features this PCB has:
 - Compatible with Speeduino FW (rev1.0/1.1 are directly compatible. Rev1.2/1.3 require small changes.)
