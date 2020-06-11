@@ -18,10 +18,11 @@ Some of the features this PCB has:
 ## Compiling speeduino code for Core4
 
 The rev1.0/1.1 PCBs can use Speeduino FW without any changes. Just use 201909 speeduino FW release or newer and select DIY-EFI CORE4 v1.0 as board layout in TS.
-Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware Rev1.2 onwards allows 6-cyl sequential 
-injection and in order to run those 202005 or later speeduino FW is needed. Also the easy Speedyloader FW upload can't be used but it requires manual compiling
-with small changes in code. See manual compiling instructions in Wiki at earlier link. Before compiling, change number of INJ-CHANNELS to 6 and number of IGN-CHANNELS
-to 3 in globals.h file:
+Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware 
+
+Rev1.2 onwards allows 6-cyl sequential injection and in order to run those 202005 or later speeduino FW is needed. Also the easy Speedyloader 
+FW upload can't be used but it requires manual compilingwith small changes in code. See manual compiling instructions in Wiki at earlier link. 
+Before compiling, change number of INJ-CHANNELS to 6 and number of IGN-CHANNELS to 3 in globals.h file:
 ![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)
 
 It's also recommended to change number of fuel outputs to 6 instead of 4 in speeduino.ini -file for Core4. But this isn't mandatory. It just gets rid of the possible
