@@ -22,7 +22,8 @@ Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://
 
 Rev1.2 onwards allows 6-cyl sequential injection and in order to run those 202005 or later speeduino FW is needed. Also the easy Speedyloader 
 FW upload can't be used but it requires manual compilingwith small changes in code. See manual compiling instructions in Wiki at earlier link. 
-Before compiling, change number of INJ-CHANNELS to 6 and number of IGN-CHANNELS to 3 in globals.h file:
+Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS to 3 in globals.h file:
+
 ![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)
 
 It's also recommended to change number of fuel outputs to 6 instead of 4 in speeduino.ini -file for Core4. But this isn't mandatory. It just gets rid of the possible
