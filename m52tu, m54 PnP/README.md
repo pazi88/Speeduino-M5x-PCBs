@@ -21,7 +21,7 @@ The rev1.0/1.1 PCBs can use Speeduino FW without any changes. Just use 201909 sp
 Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware 
 
 Rev1.2 onwards allows 6-cyl sequential injection and in order to run those 202005 or later speeduino FW is needed. Also the easy Speedyloader 
-FW upload can't be used but it requires manual compilingwith small changes in code. See manual compiling instructions in Wiki at earlier link. 
+FW upload can't be used but it requires manual compiling with small changes in code. See manual compiling instructions in Wiki at earlier link. 
 Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS to 3 in globals.h file:
 
 ![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)
