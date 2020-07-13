@@ -226,7 +226,7 @@ void setup(){
   TIM_TypeDef *Instance = TIM2;
 #endif
   HardwareTimer *SendTimer = new HardwareTimer(Instance);
-  SendTimer->setOverflow(25, HERTZ_FORMAT); // 25 Hz
+  SendTimer->setOverflow(32, HERTZ_FORMAT); // 32 Hz
   SendTimer->attachInterrupt(SendData);
   SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
   SendTimer->resume();
