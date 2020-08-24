@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <msq xmlns="http://www.msefi.com/:msq">
-<bibliography author="TunerStudio MS Lite! 3.1.01 - EFI Analytics, Inc." tuneComment="" writeDate="Mon Aug 24 09:42:44 EEST 2020"/>
+<bibliography author="TunerStudio MS Lite! 3.1.01 - EFI Analytics, Inc." tuneComment="" writeDate="Mon Aug 24 15:14:05 EEST 2020"/>
 <versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2020.08" nPages="13" signature="speeduino 202008"/>
 <page>
 <pcVariable name="tsCanId">"CAN ID 0"</pcVariable>
@@ -443,16 +443,16 @@
 <constant digits="1" name="idleTaperTime" units="S">15.9</constant>
 <constant digits="1" name="dfcoDelay" units="S">2.0</constant>
 <constant digits="0" name="dfcoMinCLT" units="C">30.0</constant>
-<constant name="vssMode">"Pulses per KM"</constant>
-<constant name="vssPin">"46"</constant>
-<constant digits="0" name="vssPulsesPerKm" units="pulses">65535.0</constant>
-<constant digits="0" name="vssSmoothing" units="%">224.0</constant>
-<constant digits="1" name="vssRatio1" units="km/h per 1000rpm">6553.5</constant>
-<constant digits="1" name="vssRatio2" units="km/h per 1000rpm">6553.5</constant>
-<constant digits="1" name="vssRatio3" units="km/h per 1000rpm">6553.5</constant>
-<constant digits="1" name="vssRatio4" units="km/h per 1000rpm">6553.5</constant>
-<constant digits="1" name="vssRatio5" units="km/h per 1000rpm">6553.5</constant>
-<constant digits="1" name="vssRatio6" units="km/h per 1000rpm">6553.5</constant>
+<constant name="vssMode">"Off"</constant>
+<constant name="vssPin">"3"</constant>
+<constant digits="0" name="vssPulsesPerKm" units="pulses">10000.0</constant>
+<constant digits="0" name="vssSmoothing" units="%">20.0</constant>
+<constant digits="1" name="vssRatio1" units="km/h per 1000rpm">299.9</constant>
+<constant digits="1" name="vssRatio2" units="km/h per 1000rpm">299.9</constant>
+<constant digits="1" name="vssRatio3" units="km/h per 1000rpm">299.9</constant>
+<constant digits="1" name="vssRatio4" units="km/h per 1000rpm">299.9</constant>
+<constant digits="1" name="vssRatio5" units="km/h per 1000rpm">299.9</constant>
+<constant digits="1" name="vssRatio6" units="km/h per 1000rpm">299.9</constant>
 <constant cols="1" digits="0" name="unused2-95" rows="9" units="%">
          0.0 
          18.0 
