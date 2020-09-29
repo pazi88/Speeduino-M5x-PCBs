@@ -30,6 +30,7 @@ Some of the features this PCB has:
   replace that and use output pin 32 as boost output. And you got boost solenoid in engine bay, without extra wiring.
 - The stock oil temp and radiator outlet temp sensors are also wired in by default, so those can be monitored using local aux in channels. Just solder JP3 and JP4
   to pull-up configuration(1-2) in CORE4 and those spare adc inputs work to monitor the oil and coolant outlet temps. (TBD: TS configuration instructions)
+  Pin A13 is oil temp and pin A14 is coolant outlet temp.
 - DISA valve is wired to the output pin 37, and it can be used by programmable outputs.
 - Exhaust CAM vanos solenoid is wired to output pin 36, and it can be used by programmable outputs.
 - Output pin 31 is wired to spare output at external connector
