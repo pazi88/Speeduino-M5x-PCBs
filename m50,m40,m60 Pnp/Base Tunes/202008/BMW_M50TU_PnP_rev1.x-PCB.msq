@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <msq xmlns="http://www.msefi.com/:msq">
-<bibliography author="TunerStudio MS Lite! 3.1.01 - EFI Analytics, Inc." tuneComment="" writeDate="Mon Aug 24 15:33:38 EEST 2020"/>
+<bibliography author="TunerStudio MS Lite! 3.1.01 - EFI Analytics, Inc." tuneComment="" writeDate="Wed Sep 30 10:48:09 EEST 2020"/>
 <versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2020.08" nPages="13" signature="speeduino 202008"/>
 <page>
 <pcVariable name="tsCanId">"CAN ID 0"</pcVariable>
@@ -310,6 +310,7 @@
 <constant name="SoftLimitMode">"Relative "</constant>
 <constant name="unused1-3c">"TPS"</constant>
 <constant name="aeApplyMode">"PW Adder"</constant>
+<constant name="multiplyMAP">"Off"</constant>
 <constant cols="1" digits="0" name="wueRates" rows="10" units="%">
          220.0 
          211.0 
@@ -818,7 +819,7 @@
 <constant digits="0" name="egoKD" units="%">2.0</constant>
 <constant digits="0" name="egoTemp" units="C">70.0</constant>
 <constant digits="0" name="egoCount">16.0</constant>
-<constant name="vvtMode">"On/Off"</constant>
+<constant name="vvtMode">"Open Loop"</constant>
 <constant name="vvtLoadSource">"MAP"</constant>
 <constant name="vvtPWMdir">"Advance"</constant>
 <constant name="vvtCLUseHold">"No"</constant>
@@ -1016,14 +1017,14 @@
          100.0 
       </constant>
 <constant cols="8" digits="0" name="vvtTable" rows="8" units="%">
-         0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 
-         0.0 0.0 0.0 0.0 100.0 0.0 0.0 0.0 
-         0.0 0.0 0.0 100.0 100.0 0.0 0.0 0.0 
-         0.0 0.0 100.0 100.0 100.0 0.0 0.0 0.0 
-         0.0 0.0 100.0 100.0 100.0 0.0 0.0 0.0 
-         0.0 100.0 100.0 100.0 100.0 0.0 0.0 0.0 
-         0.0 100.0 100.0 100.0 100.0 0.0 0.0 0.0 
-         0.0 100.0 100.0 100.0 100.0 0.0 0.0 0.0 
+         1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 
+         1.0 1.0 1.0 1.0 99.0 1.0 1.0 1.0 
+         1.0 1.0 1.0 99.0 99.0 1.0 1.0 1.0 
+         1.0 1.0 99.0 99.0 99.0 1.0 1.0 1.0 
+         1.0 1.0 99.0 99.0 99.0 1.0 1.0 1.0 
+         1.0 99.0 99.0 99.0 99.0 1.0 1.0 1.0 
+         1.0 99.0 99.0 99.0 99.0 1.0 1.0 1.0 
+         1.0 99.0 99.0 99.0 99.0 1.0 1.0 1.0 
       </constant>
 <constant cols="1" digits="0" name="rpmBinsVVT" rows="8" units="RPM">
          900.0 
