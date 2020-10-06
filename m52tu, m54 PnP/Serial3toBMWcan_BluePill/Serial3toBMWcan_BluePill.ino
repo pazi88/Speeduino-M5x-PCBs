@@ -50,6 +50,10 @@ CAN_msg_t CAN_msg_RPM;    // CAN message for RPM
 CAN_msg_t CAN_msg_CLT_TPS;    // CAN message for CLT and TPS
 CAN_msg_t CAN_msg_MPG_CEL;    // CAN message for fule consumption and CEL light
 
+#if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
+void SendData(HardwareTimer*){void SendData();}
+#endif
+
 void CANInit(enum BITRATE bitrate) //CAN bus initialization
  {
     RCC->APB1ENR |= 0x2000000UL;      // Enable CAN clock 
@@ -123,7 +127,7 @@ void CANSend(CAN_msg_t* CAN_tx_msg) // CAN message send routine
      }
  }
 
-void SendData(HardwareTimer*)       // Send can messages in 32Hz phase from timer interrupt. This is important to make cluster work smoothly
+void SendData()   // Send can messages in 32Hz phase from timer interrupt. This is important to make cluster work smoothly
 {
   digitalWrite(pin, !digitalRead(pin)); // Just to see with internal led that CAN messages are being sent
   CAN_msg_RPM.data[2]= rpmLSB; //RPM LSB
@@ -227,7 +231,7 @@ void setup(){
 #endif
   HardwareTimer *SendTimer = new HardwareTimer(Instance);
   SendTimer->setOverflow(32, HERTZ_FORMAT); // 32 Hz
-  SendTimer->attachInterrupt(SendData);
+  SendTimer->attachInterrupt(1, SendData);
   SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
   SendTimer->resume();
     
