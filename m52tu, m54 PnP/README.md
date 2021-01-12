@@ -6,7 +6,7 @@ original board in ms42/ms43 ecu case. Just open the 4 bolts in the ecu case, rem
 to carve some openings for the extra connectors and the ecu can be plugged into car.
 
 NOTE! DBW is not supported, so in M54 engine (ms43), you need to change to cable driven throttle body in order to use this.
-M52TU (ms42) has cable driven throttle as backup, so no changes needed in those to use this speeduino board. (TBD: add cable throttle instructions)
+M52TU (ms42) has cable driven throttle as backup, so no changes needed in those to use this speeduino board. See "Replacing original DBW throttle body" -chapter
 
 NOTE 2! OBD2 system is not supported in these boards, so if your country requires the car to pass OBD2 tests in MOT check, this board can't be used.
 
@@ -68,3 +68,13 @@ due to problems in those, the older CAN-bus interface is not recommended to be u
 
 
 EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-speeduino-PnP-Core4
+
+## Replacing original DBW throttle body
+
+Because this board doesn't have DBW ability the original throttle body needs to be replaced with cable driven one in M54. M50/M52 throttle bodies
+are easy replacement and adapters can be bought if needed. The DBW wiring needs to be wired to M50/M52 TPS according to this diagram:
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/M54-M50TPS.png?raw=true)
+
+M52TU has cable drive semi-DBW system that can be used with this board without modifications. But if you want to replace the original throttle body
+with M50/M52 one, follow this wiring diagram to adapt to M50/M52 TPS wiring:
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/M52TU-M50TPS.png?raw=true)
