@@ -12,7 +12,7 @@ NOTE 2! BMW M4x/M50/M60 engines use VR-type crank sensors and most VR-type cam s
 VR-conditioner is required. PCBs are tested to work with VR-conditioners using MAX9926 VR-conditioner. Other types might work, but it's not guaranteed. The PCBs
 also allow to use Hall-type sensors. See file Jumper configurations.txt for more info.
 
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m50%2Cm40%2Cm60%20Pnp/Pics/20190417_081123.jpg?raw=true)
+![alt text](https://raw.githubusercontent.com/pazi88/Speeduino-M5x-PCBs/master/m50%2Cm40%2Cm60%20Pnp/Pics/20190417_081123.jpg)
 
 Some of the features this rev 2.1 PCB has:
 - Compatible with Speeduino FW (rev 1.x are directly compatible. Rev 2.x require small changes for 6 cyl sequential.)
