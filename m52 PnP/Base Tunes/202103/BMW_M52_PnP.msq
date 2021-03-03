@@ -451,7 +451,7 @@
 <constant name="aeMode">"TPS"</constant>
 <constant name="battVCorMode">"Open Time only"</constant>
 <constant name="SoftLimitMode">"Relative "</constant>
-<constant name="useTachoSweep">"On"</constant>
+<constant name="useTachoSweep">"Off"</constant>
 <constant name="aeApplyMode">"PW Adder"</constant>
 <constant name="multiplyMAP">"Fixed"</constant>
 <constant cols="1" digits="0" name="wueRates" rows="10" units="%">
@@ -1040,7 +1040,7 @@
 <constant digits="0" name="boostKI" units="%">0.0</constant>
 <constant digits="0" name="boostKD" units="%">10.0</constant>
 <constant name="lnchPullRes">"Pullup"</constant>
-<constant name="iacPWMrun">"No"</constant>
+<constant name="iacPWMrun">"Yes"</constant>
 <constant name="fuelTrimEnabled">"No"</constant>
 <constant name="flatSEnable">"No"</constant>
 <constant name="baroPin">"A5"</constant>
