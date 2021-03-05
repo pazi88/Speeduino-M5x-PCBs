@@ -45,6 +45,7 @@ uint32_t updatePW;
 int CLT;   // to store coolant temp
 unsigned int RPM,PW,PWcount;   //RPM and PW from speeduino
 byte TPS,tempLight;   //TPS value and overheat light on/off
+bool data_ok; //indicator for the data from speeduino being ok.
 
 CAN_msg_t CAN_msg_RPM;    // CAN message for RPM
 CAN_msg_t CAN_msg_CLT_TPS;    // CAN message for CLT and TPS
@@ -177,7 +178,7 @@ void setup(){
 
     CANInit(CAN_500KBPS); //init can at 500KBPS speed
     Serial.println("CAN BUS init!");
-	
+
   CAN_msg_RPM.len = 8; //8 bytes in can message
   CAN_msg_CLT_TPS.len = 8;
   CAN_msg_MPG_CEL.len = 8;
@@ -222,6 +223,7 @@ void setup(){
  pwMSB = 0;
  CEL = 0;
  readCLT = 20;
+ data_ok = false;
 
 //setup hardwaretimer to send data for instrument cluster in 32Hz pace
 #if defined(TIM1)
@@ -253,15 +255,44 @@ void displayData(){
 }
 
 void processData(){   // necessary conversion for the data before sending to CAN BUS
+     byte tempTPS;
+     byte tempCLT;
+     data_ok = false; // set the received data as ok
 
-      RPM            = ((SpeedyResponse [16] << 8) | (SpeedyResponse [15])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
-      PW            = ((SpeedyResponse [22] << 8) | (SpeedyResponse [21])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
-      TPS            = SpeedyResponse[25];
-  	
-    RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster   
-    rpmMSB = RPM >> 8;  //split to high and low byte
-    rpmLSB = RPM;
-    CLT = (SpeedyResponse[8] -40)*4/3+64;	// CLT conversion factor for e46/e39 cluster
+    tempCLT       = SpeedyResponse[8];
+    RPM           = ((SpeedyResponse [16] << 8) | (SpeedyResponse [15])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+    PW            = ((SpeedyResponse [22] << 8) | (SpeedyResponse [21])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+    tempTPS       = SpeedyResponse[25];
+
+    // check if received values makes sense and convert those if all is ok.
+    if (RPM < 8000)  // the engine will not probaply rev over 8000 RPM
+    {
+      RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
+      rpmMSB = RPM >> 8;  //split to high and low byte
+      rpmLSB = RPM;
+    }
+    else
+    {
+      data_ok = true; //data received is probaply corrupted, don't use it.
+    }
+
+    if (tempCLT < 200 && data_ok = false)  // the engine should not be hotter than 160 degrees. 
+    {
+      CLT = (tempCLT -40)*4/3+64;  // CLT conversion factor for e46/e39 cluster
+    }
+    else
+    {
+      data_ok = true;//data received is probaply corrupted, don't use it.
+    }
+
+    if (tempTPS < 101 && data_ok = false)  //TPS values can only be from 0-100
+    {
+      TPS = tempTPS //
+    }
+    else
+    {
+      data_ok = true; //data received is probaply corrupted, don't use it.
+    }
 }
 
 void loop() {
@@ -272,12 +303,21 @@ void loop() {
    oldtime = millis();          // All ok. zero out timeout calculation
    ByteNumber = 0;              // zero out the byte number pointer
    processData();               // do the necessary processing for received data
-   displayData();               // only required for debugging
+   if (data_ok) {               // while processing the data, there has been problem, so read everything from serial buffer and start over
+   Serial.println ("Speeduino data error!");
+     while (Serial3.available) {
+       Serial3.read();
+     }
+   }
+   else {
+     displayData();               // only required for debugging
+   }
    requestData();               //restart data reading
  }
    if ( (millis()-oldtime) > 500) { // timeout if for some reason reading serial3 fails
     oldtime = millis();
     ByteNumber = 0;             // zero out the byte number pointer
+	Serial.println ("Timeout from speeduino!");
     requestData();              //restart data reading
     }
 }
