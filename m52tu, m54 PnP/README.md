@@ -78,3 +78,8 @@ are easy replacement and adapters can be bought if needed. The DBW wiring needs 
 M52TU has cable drive semi-DBW system that can be used with this board without modifications. But if you want to replace the original throttle body
 with M50/M52 one, follow this wiring diagram to adapt to M50/M52 TPS wiring:
 ![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/M52TU-M50TPS.png?raw=true)
+
+## Bosch LSU 4.9 Wideband sensor wiring
+
+If internal Spartan 2 OEM or TinyWB wideband controller is used, it has 6-pin Molex Minifit Jr. Connecor with following pinout:
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/LSU49_connector.png?raw=true)
