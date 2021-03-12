@@ -34,7 +34,7 @@ uint32_t updatePW;
 int CLT;   // to store coolant temp
 unsigned int RPM,PW,PWcount;   //RPM and PW from speeduino
 byte TPS,tempLight;   //TPS value and overheat light on/off
-bool data_ok; //indicator for the data from speeduino being ok.
+bool data_error; //indicator for the data from speeduino being ok.
 
 #if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
 void SendData(HardwareTimer*){void SendData();}
@@ -92,7 +92,7 @@ void setup(){
   pwMSB = 0;
   CEL = 0;
   tempLight = 0;
-  data_ok = false;
+  data_error = false;
 
 //setup hardwaretimer to send data for instrument cluster in 32Hz pace
 #if defined(TIM1)
@@ -168,7 +168,13 @@ void displayData(){
 void processData(){   // necessary conversion for the data before sending to CAN BUS
   byte tempTPS;
   byte tempCLT;
-  data_ok = false; // set the received data as ok
+  data_error = false; // set the received data as ok
+
+  if (SpeedyResponse[0] != 65)  //The first data received should be A (65 is ascii)
+    {
+      data_error = true; //data received is probaply corrupted, don't use it.
+      Serial.print ("Not an A message");
+    }
 
   tempCLT       = SpeedyResponse[8];
   RPM           = ((SpeedyResponse [16] << 8) | (SpeedyResponse [15])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
@@ -176,7 +182,7 @@ void processData(){   // necessary conversion for the data before sending to CAN
   tempTPS       = SpeedyResponse[25];
 
   // check if received values makes sense and convert those if all is ok.
-  if (RPM < 8000)  // the engine will not probaply rev over 8000 RPM
+  if (RPM < 8000 && data_error == false)  // the engine will not probaply rev over 8000 RPM
   {
     RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
     rpmMSB = RPM >> 8;  //split to high and low byte
@@ -184,10 +190,11 @@ void processData(){   // necessary conversion for the data before sending to CAN
   }
   else
   {
-    data_ok = true; //data received is probaply corrupted, don't use it.
+    data_error = true; //data received is probaply corrupted, don't use it.
+    Serial.print ("Error. RPM Received:"); Serial.print (RPM); Serial.print("\t");
   }
 
-  if (tempCLT < 182 && data_ok == false)  // 142 degrees Celcius is the hottest temp that fits to the conversion. 
+  if (tempCLT < 182 && data_error == false)  // 142 degrees Celcius is the hottest temp that fits to the conversion. 
   {
     CLT = (tempCLT -40)*4/3+64;  // CLT conversion factor for e46/e39 cluster
     if (tempCLT > 160) {
@@ -200,16 +207,18 @@ void processData(){   // necessary conversion for the data before sending to CAN
   }
   else
   {
-    data_ok = true;//data received is probaply corrupted, don't use it.
+    data_error = true;//data received is probaply corrupted, don't use it.
+    Serial.print ("Error. CLT received:"); Serial.print (tempCLT); Serial.print("\t");
   }
 
-  if (tempTPS < 101 && data_ok == false)  //TPS values can only be from 0-100
+  if (tempTPS < 101 && data_error == false)  //TPS values can only be from 0-100
   {
     TPS = map(tempTPS, 0, 100, 1, 254); //0-100 TPS value mapped to 0x01 to 0xFE range.
   }
   else
   {
-    data_ok = true; //data received is probaply corrupted, don't use it.
+    data_error = true; //data received is probaply corrupted, don't use it.
+    Serial.print ("Error. TPS received:"); Serial.print (tempTPS); Serial.print("\t");
   }
 }
 
@@ -221,7 +230,7 @@ void loop() {
     oldtime = millis();          // All ok. zero out timeout calculation
     ByteNumber = 0;              // zero out the byte number pointer
     processData();               // do the necessary processing for received data
-    if (data_ok) {               // while processing the data, there has been problem, so read everything from serial buffer and start over
+    if (data_error) {               // while processing the data, there has been problem, so read everything from serial buffer and start over
       Serial.println ("Speeduino data error!");
       while (Serial3.available() ) {
         Serial3.read();

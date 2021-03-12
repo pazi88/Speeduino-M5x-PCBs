@@ -122,6 +122,7 @@ void STM32_CAN::begin()
     //CAN2->MCR = 0x41UL;                  // Hardware initialization(With automatic retransmission, not used because causes timer issues on speeduino)
   }
   #endif
+  Serial.println("Can.begin");
 }
 
 void STM32_CAN::writeTxMailbox(uint8_t mb_num, CAN_message_t &CAN_tx_msg)
@@ -214,7 +215,7 @@ int STM32_CAN::write(CAN_MAILBOX mb_num, CAN_message_t &CAN_tx_msg)
   if (_channel == _CAN1)
   {
     if (CAN1->sTxMailBox[mb_num].TIR & 0x1UL) {
-      //Serial.println("transmit Fail");
+      Serial.println("transmit Fail");
       return -1; // transmit failed, mailbox was not empty
     }
     else { // mailbox was empty, so it's ok to send new message
@@ -226,7 +227,7 @@ int STM32_CAN::write(CAN_MAILBOX mb_num, CAN_message_t &CAN_tx_msg)
   if (_channel == _CAN2)
   {
     if (CAN2->sTxMailBox[mb_num].TIR & 0x1UL) {
-      //Serial.println("transmit Fail");
+      Serial.println("transmit Fail");
       return -1; // transmit failed, mailbox was not empty
     }
     else { // mailbox was empty, so it's ok to send new message
@@ -420,6 +421,7 @@ void STM32_CAN::setBaudRate(uint32_t baud)
     CAN2->MCR   &= ~(0x1UL);               // Require CAN2 to normal mode  
   }
   #endif
+  Serial.println("Can.setBaudRate");
 }
 
 void STM32_CAN::enableFIFO(bool status)
