@@ -63,7 +63,7 @@ used in Arduino IDE. The code works with regular STM32 core board manager for Ar
 Use these settings in Arduino IDE to compile and upload the code. Choose correct COM port for your FTDI breakout board:
 ![alt text](https://raw.githubusercontent.com/pazi88/8Ch-EGT/master/Arduino%20IDE%20settings.png)
 
-NOTE! Use the Serial3toBMWcan_BluePill -code with the bluepill. The other codes are to be used rev1.0/1.1 that used different CAN-bus interface. But
+NOTE! Use the Serial3toBMWcan -code with the bluepill. The other codes are to be used rev1.0/1.1 that used different CAN-bus interface. But
 due to problems in those, the older CAN-bus interface is not recommended to be used.
 
 
