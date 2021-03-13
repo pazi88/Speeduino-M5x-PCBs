@@ -19,6 +19,7 @@ HardwareSerial Serial3(USART3); //for some reason this isn't defined in arduino_
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
 static CAN_message_t CAN_msg_MPG_CEL;
+static CAN_message_t CAN_inMsg;
 
 STM32_CAN Can1 (_CAN1,DEF);
 
@@ -31,6 +32,12 @@ byte pwLSB;   // Least significant byte for PW message
 byte pwMSB;  // Most significant byte for PW message
 byte CEL;   //timer for how long CEL light be kept on
 uint32_t updatePW;
+byte odometerLSB;
+byte odometerMSB;
+byte FuelLevel;
+byte OutsideTemp;
+byte vssCanLSB;
+byte vssCanMSB;
 int CLT;   // to store coolant temp
 unsigned int RPM,PW,PWcount;   //RPM and PW from speeduino
 byte TPS,tempLight;   //TPS value and overheat light on/off
@@ -113,12 +120,35 @@ void requestData() {
   Serial3.write("A"); //Send A to request real time data
 }
 
+void readCanMessage() {
+  //worg in progress
+  if ( CAN_inMsg.id == 0x613 )
+  {
+    odometerLSB = CAN_inMsg.buf[0];
+    odometerMSB = CAN_inMsg.buf[1];
+    //Serial.print ("Odometer: "); Serial.println (odometerLSB + (odometerMSB << 8));
+    FuelLevel = CAN_inMsg.buf[2];
+    //Serial.print ("Fuel level: "); Serial.println (FuelLevel);
+  }
+  if ( CAN_inMsg.id == 0x615 )
+  {
+    OutsideTemp = CAN_inMsg.buf[3];
+    //Serial.print ("Outside temp: "); Serial.println (OutsideTemp);
+  }
+  if ( CAN_inMsg.id == 0x153 )
+  {
+    vssCanLSB = CAN_inMsg.buf[1];
+    vssCanMSB = CAN_inMsg.buf[2];
+  }
+}
+
 void SendData()   // Send can messages in 32Hz phase from timer interrupt. This is important to make cluster work smoothly
 {
-  digitalWrite(pin, !digitalRead(pin)); // Just to see with internal led that CAN messages are being sent
   CAN_msg_RPM.buf[2]= rpmLSB; //RPM LSB
   CAN_msg_RPM.buf[3]= rpmMSB; //RPM MSB
-  Can1.write(CAN_msg_RPM);
+  if (Can1.write(CAN_msg_RPM)) {
+    digitalWrite(pin, !digitalRead(pin)); // Just to see with internal led that CAN messages are being sent
+  }
   //Send CLT and TPS
   
   CAN_msg_CLT_TPS.buf[1]= CLT; //Coolant temp
@@ -138,14 +168,11 @@ void SendData()   // Send can messages in 32Hz phase from timer interrupt. This 
   else{
     CAN_msg_MPG_CEL.buf[0]= 0x00;  //CEL off
   }
-  updatePW = updatePW + PW;
-    if (updatePW > 5000){
-      PWcount = PWcount+1; // fuel consumption is measured by rate of change in instrument cluster. So PW counter is increased by steps of one. And rate of update depends on PW from speeduino. This isn't yet working correctly.
-      if (PWcount == 0xFFFF)
-      {
-        PWcount = 0;
-      }
-      updatePW = 0;
+  updatePW = updatePW + ( PW * (RPM/1000) );
+  PWcount = (updatePW/5500); // fuel consumption is measured by rate of change in instrument cluster. So PW counter is increased by steps of one. And rate of update depends on PW from speeduino. This isn't yet working correctly.
+    if (PWcount == 0xFFFF)
+    {
+      PWcount = 0;
     }
   pwMSB = PWcount >> 8;  //split to high and low byte
   pwLSB = PWcount;
@@ -168,6 +195,7 @@ void displayData(){
 void processData(){   // necessary conversion for the data before sending to CAN BUS
   byte tempTPS;
   byte tempCLT;
+  unsigned int tempRPM;
   data_error = false; // set the received data as ok
 
   if (SpeedyResponse[0] != 65)  //The first data received should be A (65 is ascii)
@@ -184,9 +212,9 @@ void processData(){   // necessary conversion for the data before sending to CAN
   // check if received values makes sense and convert those if all is ok.
   if (RPM < 8000 && data_error == false)  // the engine will not probaply rev over 8000 RPM
   {
-    RPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
-    rpmMSB = RPM >> 8;  //split to high and low byte
-    rpmLSB = RPM;
+    tempRPM = RPM * 6.4; // RPM conversion factor for e46/e39 cluster
+    rpmMSB = tempRPM >> 8;  //split to high and low byte
+    rpmLSB = tempRPM;
   }
   else
   {
@@ -246,5 +274,10 @@ void loop() {
     ByteNumber = 0;                // zero out the byte number pointer
     Serial.println ("Timeout from speeduino!");
     requestData();                //restart data reading
+  }
+  //we can also read stuff back from instrument cluster
+  while (Can1.read(CAN_inMsg) ) 
+  {
+    readCanMessage();
   }
 }
