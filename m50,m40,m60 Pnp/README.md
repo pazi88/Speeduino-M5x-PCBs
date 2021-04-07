@@ -14,7 +14,7 @@ also allow to use Hall-type sensors. See file Jumper configurations.txt for more
 
 ![alt text](https://raw.githubusercontent.com/pazi88/Speeduino-M5x-PCBs/master/m50%2Cm40%2Cm60%20Pnp/Pics/20190417_081123.jpg)
 
-Some of the features this rev 2.1 PCB has:
+Some of the features that latest rev 2.2 PCB has:
 - Compatible with Speeduino FW (rev 1.x are directly compatible. Rev 2.x require small changes for 6 cyl sequential.)
 - 6-cyl sequential fuel and spark capable
 - Features 16-pin external connector for following things:
@@ -37,6 +37,7 @@ Some of the features this rev 2.1 PCB has:
    - Spare relay outputs at external connectors are connected to D28, D30 and D32
    - DISA output in connected to D30 (shared with external connectod D30 output)
 - PCB can be populated with HC-05/06 bluetooth module
+- PCB can be populated with DIY-EFI TinyWB Module
 
 ## Compiling speeduino code for Arduino mega
 
@@ -53,3 +54,12 @@ NOTE! 4/8 cyl engines or semi sequential injection on 6 cyl don't require custom
 So even with 2.x PCB the speedyloder upload can be used for 4/8 cyl engines and 6 cyl semi sequential injection.
 
 EasyEda project link for the PCB: https://easyeda.com/pazi88/m50speeduino_copy
+
+## DIY-EFI TinyWB Module
+
+Rev 2.2 board has possibility to install DIY-EFI TinyWB Module internally to the ecu.
+Link to the Wideband controller: https://diy-efi.co.uk/product/tinywb_module
+
+Tiny WB uses Bosch LSU 4.9 wideband sensor. Ecu uses 6-pin Molex Minifit Jr. Connecor for the wideband sensor with following pinout:
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/LSU49_connector.png?raw=true)
+

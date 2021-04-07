@@ -15,7 +15,7 @@ Stock M52 Cam Sensor with M52TU / M54 intake cam sensor, it will work great. BUT
 
 ![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52%20PnP/Pics/20200930_102248.jpg?raw=true)
 
-Some of the features this rev 2.1 PCB has:
+Some of the features that latest rev 2.2 PCB has:
 - Compatible with Speeduino FW (rev 1.x are directly compatible. Rev 2.x require small changes.)
 - 6-cyl sequential fuel in rev 2.x
 - Features 16-pin external connector for following things:
@@ -40,6 +40,7 @@ Some of the features this rev 2.1 PCB has:
    - Spare inputs are connected to A6, A7, A9
    - Spare relay outputs at external connectors are connected to D31, D33 and D35
 - PCB can be populated with HC-05/06 bluetooth module
+- PCB can be populated with DIY-EFI TinyWB Module
 
 ## Compiling speeduino code for Arduino mega
 
@@ -53,3 +54,12 @@ Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS 
 ![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)
 
 EasyEda project link for the PCB: https://easyeda.com/pazi88/speeduino-v0-4-3-compatible-pcb-for-m52-rev1-2_copy
+
+## DIY-EFI TinyWB Module
+
+Rev 2.2 board has possibility to install DIY-EFI TinyWB Module internally to the ecu.
+Link to the Wideband controller: https://diy-efi.co.uk/product/tinywb_module
+
+Tiny WB uses Bosch LSU 4.9 wideband sensor. Ecu uses 6-pin Molex Minifit Jr. Connecor for the wideband sensor with following pinout:
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/LSU49_connector.png?raw=true)
+
