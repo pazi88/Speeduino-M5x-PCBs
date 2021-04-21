@@ -31,6 +31,7 @@ byte rpmMSB;  // Most significant byte for RPM message
 byte pwLSB;   // Least significant byte for PW message
 byte pwMSB;  // Most significant byte for PW message
 byte CEL;   //timer for how long CEL light be kept on
+byte currentCommand; 
 uint32_t updatePW;
 byte odometerLSB;
 byte odometerMSB;
@@ -250,6 +251,32 @@ void processData(){   // necessary conversion for the data before sending to CAN
   }
 }
 
+void ReadSerial()
+{
+  currentCommand = Serial.read();
+
+  switch (currentCommand)
+  {
+
+    case 'A':
+    break;
+    case 'R':
+      byte tmp0;
+      byte tmp1;
+      if ( Serial3.available() >= 3)
+      {
+        canin_channel = Serial3.read();
+        tmp0 = Serial3.read();  //read in lsb of source can address 
+        tmp1 = Serial3.read();  //read in msb of source can address
+        CanAddress = tmp1<<8 | tmp0 ;
+        if (CanAddress == 0x613 || 0x615 || 0x153 ){
+          SendDataToSpeeduino(CanAddress);  //request ok, send the data to speeduino
+        }
+      }
+    break;
+  }
+}
+
 void loop() {
   if (Serial3.available () > 0) {  // read bytes from serial3
     SpeedyResponse[ByteNumber ++] = Serial3.read();
@@ -275,7 +302,7 @@ void loop() {
     Serial.println ("Timeout from speeduino!");
     requestData();                //restart data reading
   }
-  //we can also read stuff back from instrument cluster
+  //we can also read stuff back from instrument cluster and ABS/ASC unit
   while (Can1.read(CAN_inMsg) ) 
   {
     readCanMessage();
