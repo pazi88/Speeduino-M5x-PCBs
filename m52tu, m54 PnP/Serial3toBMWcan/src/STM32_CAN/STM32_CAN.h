@@ -48,7 +48,7 @@ typedef const struct
   uint8_t BRP;
 } CAN_bit_timing_config_t;
 
-typedef enum CAN_PINS {DEF, ALT, ALT2,} CAN_PINS;
+typedef enum CAN_PINS {DEF, ALT, ALT_2,} CAN_PINS;
 
 //STM32 has only 3 TX mailboxes
 typedef enum CAN_MAILBOX {
