@@ -109,8 +109,12 @@ void setup(){
 #endif
   HardwareTimer *SendTimer = new HardwareTimer(Instance);
   SendTimer->setOverflow(32, HERTZ_FORMAT); // 32 Hz
+#if ( STM32_CORE_VERSION_MAJOR < 2 )
   SendTimer->attachInterrupt(1, SendData);
   SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
+#else //2.0 forward
+  SendTimer->attachInterrupt(SendData);
+#endif
   SendTimer->resume();
   
   requestData(); // all set. Start requesting data from speeduino
