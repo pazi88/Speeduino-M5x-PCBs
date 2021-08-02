@@ -54,6 +54,11 @@ Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS 
 It's also recommended to change number of fuel outputs to 6 instead of 4 in speeduino.ini -file for Core4. But this isn't mandatory. It just gets rid of the possible
 warnings in TS and allows to use HW test mode for injectors 5 and 6.
 
+## Set solder jumpers for Core4
+
+To get all the features working correctly for this board, set Core4 solder jumpers according to the pic:
+![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/jumpers.jpg?img=smaller)
+
 ## Compiling code for CAN-Bus interface
 
 The CAN-bus interface uses STM32F103C8T6 bluepill board in conjunction of MCP2551 CAN transceiver to send CAN data to instrument cluster and read
