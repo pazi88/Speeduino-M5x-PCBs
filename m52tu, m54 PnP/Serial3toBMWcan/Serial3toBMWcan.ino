@@ -240,20 +240,21 @@ void sendReply(uint8_t data[]) {
   }
   data[data[1]-1] = checksum;
   DS2.sendCommand(data);
-  DS2.clearRX(); // we clear RX on our side so we don't read the stuff that we sent out
+  DS2.newCommand(); // we clear RX on our side so we don't read the stuff that we sent out
 }
 
 void sendEcuId(uint8_t data[]) {
   data[0] = 0x12; // Not really needed as our data already have this
-  data[1] = 10;   // response length
+  data[1] = 11;   // response length
   data[2] = 0xA0; //Ack
-  data[3] = 37;  //Ecu Id in ASCII
-  data[4] = 35;
-  data[5] = 30;
-  data[6] = 30;
-  data[7] = 32;
-  data[8] = 35;
-  data[9] = 35;
+  //Ecu Id in ASCII, we use ms42 C6-SW version id here
+  data[3] = 37;  // 7
+  data[4] = 35;  // 5
+  data[5] = 30;  // 0
+  data[6] = 30;  // 0
+  data[7] = 32;  // 2
+  data[8] = 35;  // 5
+  data[9] = 35;  // 5
   
     // Checksum
   uint8_t checksum = 0;
@@ -262,7 +263,7 @@ void sendEcuId(uint8_t data[]) {
   }
   data[data[1]-1] = checksum;
   DS2.sendCommand(data);
-  DS2.clearRX(); // we clear RX on our side so we don't read the stuff that we sent out
+  DS2.newCommand(); // we clear RX on our side so we don't read the stuff that we sent out
 }
 #endif
 
@@ -451,7 +452,7 @@ void loop() {
         if(data[3] == 0x03) sendReply(data);
         break;
       case 0x00:
-        if(data[3] == 0x03) sendEcuId(data);
+        if(data[3] == 0x16) sendEcuId(data);
         break;
       default: break;
     }
