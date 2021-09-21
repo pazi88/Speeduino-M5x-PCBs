@@ -53,7 +53,7 @@ struct statuses {
 	uint8_t afrTarget;
 	uint16_t PW1; //Pulsewidth 1 multiplied by 10 in ms. Have to convert from uS to mS.
 	uint8_t tpsDOT; //TPS DOT
-	uint8_t advance;
+	int8_t advance;
 	uint8_t TPS; // TPS (0% to 100%)
 	uint16_t loopsPerSecond;
 	uint16_t freeRAM;
@@ -217,21 +217,106 @@ void sendReply(uint8_t data[]) {
   uint8_t offset = 3;
 
   // Here is where payload starts:
+  float tempvalue;
+  uint32_t valueToSend;
+  uint8_t valueOffset;
+  uint8_t valueLength;
+  
+  //RPM
+  valueOffset = 0;
+  valueLength = 2;
+  valueToSend = currentStatus.RPM;
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
 
-  float EngineSpeedVal = currentStatus.RPM;
-  uint8_t EngineSpeedOffset = 0;
-  uint8_t EngineSpeedLength = 2;
-  uint32_t valueToSend = convertValue(EngineSpeedVal, 0.0015258789, -50);
-  addValToData(valueToSend, data, EngineSpeedOffset + offset, EngineSpeedLength);
+  //Load
+  tempvalue = currentStatus.MAP;
+  valueOffset = 29;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.021);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
 
+  //Ignition Angle
+  tempvalue = currentStatus.advance;
+  valueOffset = 11;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, -0.375, 72);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //IPW
+  tempvalue = currentStatus.PW1;
+  valueOffset = 12;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.04);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //Battery Voltage
+  tempvalue = currentStatus.battery10;
+  valueOffset = 20;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, 0.1015625);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //TPS
+  tempvalue = currentStatus.TPS;
+  valueOffset = 4;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, 0.390625);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //IAT
+  tempvalue = currentStatus.IAT;
+  valueOffset = 7;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, 0.75, -8);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //CLT
+  tempvalue = currentStatus.CLT;
+  valueOffset = 8;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, 0.75, -8);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //ICV
+  tempvalue = currentStatus.idleLoad;
+  valueOffset = 14;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.001526);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
 
-  float lambdaInt1Val = currentStatus.egoCorrection;
-  uint8_t lambdaInt1Offset = 21;
-  uint8_t lambdaInt1Length = 2;
-  valueToSend = convertValue(lambdaInt1Val, 0.0015258789, -50);
-  addValToData(valueToSend, data, lambdaInt1Offset + offset, lambdaInt1Length);
+  //Lambda Int 1
+  tempvalue = currentStatus.egoCorrection;
+  valueOffset = 21;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.0015258789, -50);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //Lambda Int 2
+  tempvalue = 0;
+  valueOffset = 23;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.0015258789, -50);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //Knock Voltage 1
+  tempvalue = 0;
+  valueOffset = 31;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, 0.01952);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //Knock Voltage 2
+  tempvalue = 0;
+  valueOffset = 32;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, 0.01952);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
 
-// DO MORE STUFF HERE
+  //VSS
+  valueOffset = 2;
+  valueLength = 1;
+  valueToSend = ((vssCanMSB << 8) | (vssCanLSB));
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
   
   // Checksum
   uint8_t checksum = 0;
