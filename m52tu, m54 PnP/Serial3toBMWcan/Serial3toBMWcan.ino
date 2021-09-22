@@ -209,11 +209,8 @@ void addValToData(uint32_t val, uint8_t data[], uint8_t offset, uint8_t length =
 
 void sendReply(uint8_t data[]) {
   data[0] = 0x12; // Not needed as our data already have that
-  data[1] = 32; // because our highest known offset is 32, if we know all parameters we need to double check if it's acutally ok value
-
-  // I assume we don't need to change it, would need to see MS42 raw reply to confirm
-  data[2] = 0x0B;
-  data[3] = 0x03;
+  data[1] = 38; // ms42 response lenght is 38 (26 hex)
+  data[2] = 0xA0; //Ack
   uint8_t offset = 3;
 
   // Here is where payload starts:
@@ -227,33 +224,11 @@ void sendReply(uint8_t data[]) {
   valueLength = 2;
   valueToSend = currentStatus.RPM;
   addValToData(valueToSend, data, valueOffset + offset, valueLength);
-
-  //Load
-  tempvalue = currentStatus.MAP;
-  valueOffset = 29;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.021);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
-
-  //Ignition Angle
-  tempvalue = currentStatus.advance;
-  valueOffset = 11;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, -0.375, 72);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
   
-  //IPW
-  tempvalue = currentStatus.PW1;
-  valueOffset = 12;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.04);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
-  
-  //Battery Voltage
-  tempvalue = currentStatus.battery10;
-  valueOffset = 20;
+  //VSS
+  valueOffset = 2;
   valueLength = 1;
-  valueToSend = convertValue(tempvalue, 0.1015625);
+  valueToSend = ((vssCanMSB << 8) | (vssCanLSB));
   addValToData(valueToSend, data, valueOffset + offset, valueLength);
   
   //TPS
@@ -261,6 +236,13 @@ void sendReply(uint8_t data[]) {
   valueOffset = 4;
   valueLength = 1;
   valueToSend = convertValue(tempvalue, 0.390625);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //MAF
+  tempvalue = currentStatus.VE;
+  valueOffset = 5;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.25);
   addValToData(valueToSend, data, valueOffset + offset, valueLength);
   
   //IAT
@@ -277,11 +259,46 @@ void sendReply(uint8_t data[]) {
   valueToSend = convertValue(tempvalue, 0.75, -8);
   addValToData(valueToSend, data, valueOffset + offset, valueLength);
   
-  //ICV
+  //Oil temp
+  tempvalue = CANin_1;
+  valueOffset = 9;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, 0.75, -8);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //Ignition Angle
+  tempvalue = currentStatus.advance;
+  valueOffset = 11;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, -0.375, 72);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //IPW
+  tempvalue = currentStatus.PW1;
+  valueOffset = 12;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.04);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+
+  //ICV?
   tempvalue = currentStatus.idleLoad;
   valueOffset = 14;
   valueLength = 2;
   valueToSend = convertValue(tempvalue, 0.001526);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //ICV duty
+  tempvalue = currentStatus.idleLoad;
+  valueOffset = 16;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.001526);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  
+  //Battery Voltage
+  tempvalue = currentStatus.battery10;
+  valueOffset = 20;
+  valueLength = 1;
+  valueToSend = convertValue(tempvalue, 0.1015625);
   addValToData(valueToSend, data, valueOffset + offset, valueLength);
 
   //Lambda Int 1
@@ -297,6 +314,13 @@ void sendReply(uint8_t data[]) {
   valueLength = 2;
   valueToSend = convertValue(tempvalue, 0.0015258789, -50);
   addValToData(valueToSend, data, valueOffset + offset, valueLength);
+
+  //Load
+  tempvalue = currentStatus.MAP;
+  valueOffset = 29;
+  valueLength = 2;
+  valueToSend = convertValue(tempvalue, 0.021);
+  addValToData(valueToSend, data, valueOffset + offset, valueLength);
   
   //Knock Voltage 1
   tempvalue = 0;
@@ -310,12 +334,6 @@ void sendReply(uint8_t data[]) {
   valueOffset = 32;
   valueLength = 1;
   valueToSend = convertValue(tempvalue, 0.01952);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
-
-  //VSS
-  valueOffset = 2;
-  valueLength = 1;
-  valueToSend = ((vssCanMSB << 8) | (vssCanLSB));
   addValToData(valueToSend, data, valueOffset + offset, valueLength);
   
   // Checksum
