@@ -110,6 +110,7 @@ int CLT;   // to store coolant temp
 unsigned int RPM,PW,PWcount;   //RPM and PW from speeduino
 byte TPS,tempLight;   //TPS value and overheat light on/off
 bool data_error; //indicator for the data from speeduino being ok.
+bool responseSent;  // to keep track if we have responded to data request or not.
 uint8_t data[255]; //For DS2 data
 
 #if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
@@ -200,10 +201,13 @@ uint32_t convertValue(float val, float mul = 1, float add = 0) {
   return convertedVal;
 }
 
-void addValToData(uint32_t val, uint8_t data[], uint8_t offset, uint8_t length = 1, bool reverseEndianess = false) {
-  for(uint8_t i = 0; i < length; i++) {
-    if(reverseEndianess) data[offset + i] = ((uint8_t *)&val)[i];
-    else data[offset + i] = ((uint8_t *)&val)[3-i];
+void addValToData(uint16_t val, uint8_t data[], uint8_t offset, uint8_t length = 1) {
+  if(length == 1) {
+    data[offset] = lowByte(val);
+  }
+  else if (length == 2) {
+    data[offset] = highByte(val);
+    data[offset + 1] = lowByte(val);
   }
 }
 
@@ -211,130 +215,78 @@ void sendReply(uint8_t data[]) {
   data[0] = 0x12; // Not needed as our data already have that
   data[1] = 38; // ms42 response lenght is 38 (26 hex)
   data[2] = 0xA0; //Ack
-  uint8_t offset = 3;
+  uint8_t offset = 3; // payload starts after 3 initial bytes
 
   // Here is where payload starts:
   float tempvalue;
-  uint32_t valueToSend;
-  uint8_t valueOffset;
-  uint8_t valueLength;
+  uint16_t valueToSend;
   
   //RPM
-  valueOffset = 0;
-  valueLength = 2;
-  valueToSend = currentStatus.RPM;
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  //addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  addValToData(currentStatus.RPM, data, 0 + offset, 2);
   
   //VSS
-  valueOffset = 2;
-  valueLength = 1;
-  valueToSend = ((vssCanMSB << 8) | (vssCanLSB));
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  addValToData(((vssCanMSB << 8) | (vssCanLSB)), data, 2 + offset, 1);
   
   //TPS
-  tempvalue = currentStatus.TPS;
-  valueOffset = 4;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, 0.390625);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.TPS, 0.390625);
+  addValToData(valueToSend, data, 4 + offset, 1);
   
   //MAF
-  tempvalue = currentStatus.VE;
-  valueOffset = 5;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.25);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.VE, 0.25);
+  addValToData(valueToSend, data, 5 + offset, 2);
   
   //IAT
-  tempvalue = currentStatus.IAT;
-  valueOffset = 7;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, 0.75, -8);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.IAT, 0.75, -8);
+  addValToData(valueToSend, data, 7 + offset, 1);
   
   //CLT
-  tempvalue = currentStatus.CLT;
-  valueOffset = 8;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, 0.75, -8);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.CLT, 0.75, -8);
+  addValToData(valueToSend, data, 8 + offset, 1);
   
   //Oil temp
-  tempvalue = CANin_1;
-  valueOffset = 9;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, 0.75, -8);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.CANin_1, 0.75, -8);
+  addValToData(valueToSend, data, 9 + offset, 1);
   
   //Ignition Angle
-  tempvalue = currentStatus.advance;
-  valueOffset = 11;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, -0.375, 72);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.advance, -0.375, 72);
+  addValToData(valueToSend, data, 11 + offset, 1);
   
   //IPW
-  tempvalue = currentStatus.PW1;
-  valueOffset = 12;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.04);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.PW1, 0.04);
+  addValToData(valueToSend, data, 12 + offset, 2);
 
   //ICV?
-  tempvalue = currentStatus.idleLoad;
-  valueOffset = 14;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.001526);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.idleLoad, 0.001526);
+  addValToData(valueToSend, data, 14 + offset, 2);
   
   //ICV duty
-  tempvalue = currentStatus.idleLoad;
-  valueOffset = 16;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.001526);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.idleLoad, 0.001526);
+  addValToData(valueToSend, data, 16 + offset, 2);
   
   //Battery Voltage
-  tempvalue = currentStatus.battery10;
-  valueOffset = 20;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, 0.1015625);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.battery10, 0.1015625);
+  addValToData(valueToSend, data, 20 + offset, 1);
 
   //Lambda Int 1
-  tempvalue = currentStatus.egoCorrection;
-  valueOffset = 21;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.0015258789, -50);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.egoCorrection, 0.0015258789, -50);
+  addValToData(valueToSend, data, 21 + offset, 2);
   
   //Lambda Int 2
-  tempvalue = 0;
-  valueOffset = 23;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.0015258789, -50);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(0, 0.0015258789, -50);
+  addValToData(valueToSend, data, 23 + offset, 2);
 
   //Load
-  tempvalue = currentStatus.MAP;
-  valueOffset = 29;
-  valueLength = 2;
-  valueToSend = convertValue(tempvalue, 0.021);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(currentStatus.MAP, 0.021);
+  addValToData(valueToSend, data, 29 + offset, 2);
   
   //Knock Voltage 1
-  tempvalue = 0;
-  valueOffset = 31;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, 0.01952);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(0, 0.01952);
+  addValToData(valueToSend, data, 31 + offset, 1);
   
   //Knock Voltage 2
-  tempvalue = 0;
-  valueOffset = 32;
-  valueLength = 1;
-  valueToSend = convertValue(tempvalue, 0.01952);
-  addValToData(valueToSend, data, valueOffset + offset, valueLength);
+  valueToSend = convertValue(0, 0.01952);
+  addValToData(valueToSend, data, 32 + offset, 1);
   
   // Checksum
   uint8_t checksum = 0;
@@ -342,8 +294,8 @@ void sendReply(uint8_t data[]) {
     checksum ^= data[i]; // Simple XOR checksum
   }
   data[data[1]-1] = checksum;
-  DS2.sendCommand(data);
-  DS2.newCommand(); // we clear RX on our side so we don't read the stuff that we sent out
+  DS2.writeData(data);
+  responseSent = true;
 }
 
 void sendEcuId(uint8_t data[]) {
@@ -365,8 +317,8 @@ void sendEcuId(uint8_t data[]) {
     checksum ^= data[i]; // Simple XOR checksum
   }
   data[data[1]-1] = checksum;
-  DS2.sendCommand(data);
-  DS2.newCommand(); // we clear RX on our side so we don't read the stuff that we sent out
+  DS2.writeData(data);
+  responseSent = true;
 }
 #endif
 
@@ -517,6 +469,7 @@ void processData(){   // necessary conversion for the data before sending to CAN
   }
 }
 
+// main loop
 void loop() {
   if (Serial3.available () > 0) {  // read bytes from serial3
     SpeedyResponse[ByteNumber ++] = Serial3.read();
@@ -547,17 +500,35 @@ void loop() {
   {
     readCanMessage();
   }
-  // Read DS2 command and respond to it
-  if(DS2.readCommand(data)) {
-    uint8_t len = data[1];
-    switch(data[2]) {
-      case 0x0B:
-        if(data[3] == 0x03) sendReply(data);
-        break;
-      case 0x00:
-        if(data[3] == 0x16) sendEcuId(data);
-        break;
-      default: break;
+#ifdef DS2_ENABLE
+  //see if there is commands available from K-line
+  if( responseSent == false ){
+    if( DS2.available() >= 4 ){  //commands are 4 bytes long, so we only start reading RX buffer, when whe have full command there.
+      if(DS2.readCommand(data)){  //Read command will ensure it's own length and if checksum is ok.
+        uint8_t len = data[1];
+        switch(data[2]) {
+          case 0x0B:
+            if(data[3] == 0x03) sendReply(data);
+            break;
+          case 0x00:
+            if(data[3] == 0x16) sendEcuId(data);
+            break;
+          case 0xA0:
+            Serial.println("Error! DS2 Received Ack.");
+            break;
+          default:
+		    Serial.println("Not supported DS2 command");
+          break;
+        }
+      }
     }
   }
+//if we have sent the response, we'll wait for the echo of to be filled in serial buffer and then we will just read it out to get rid of it.
+  else if( responseSent == true ){
+    if( DS2.available() >= DS2.getEcho() ){
+      DS2.readCommand(data);
+	  responseSent = false; //there is no more echo on the RX buffer, so we are ready to read new command
+    }
+  }
+#endif
 }
