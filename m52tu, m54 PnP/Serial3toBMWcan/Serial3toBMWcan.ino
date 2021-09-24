@@ -33,60 +33,60 @@ STM32_CAN Can1 (_CAN1,DEF);
 
 // This struct gathers data read from speeduino
 struct statuses {
-	uint8_t secl; //secl is simply a counter that increments each second.
-	uint8_t status1; //status1 Bitfield, inj1Status(0), inj2Status(1), inj3Status(2), inj4Status(3), DFCOOn(4), boostCutFuel(5), toothLog1Ready(6), toothLog2Ready(7)
-	uint8_t engine; //Engine Status Bitfield, running(0), crank(1), ase(2), warmup(3), tpsaccaen(4), tpsacden(5), mapaccaen(6), mapaccden(7)
-	uint8_t dwell; //Dwell in ms * 10
-	uint16_t MAP; //2 bytes for MAP
-	uint8_t IAT;
-	uint8_t CLT;
-	uint8_t batCorrection; //Battery voltage correction (%)
-	uint8_t battery10; //battery voltage
-	uint8_t O2; //O2
-	uint8_t egoCorrection; //Exhaust gas correction (%)
-	uint8_t iatCorrection; //Air temperature Correction (%)
-	uint8_t wueCorrection; //Warmup enrichment (%)
-	uint16_t RPM; //rpm
-	uint8_t AEamount; //acceleration enrichment (%)
-	uint8_t corrections; //Total GammaE (%)
-	uint8_t VE; //Current VE 1 (%)
-	uint8_t afrTarget;
-	uint16_t PW1; //Pulsewidth 1 multiplied by 10 in ms. Have to convert from uS to mS.
-	uint8_t tpsDOT; //TPS DOT
-	int8_t advance;
-	uint8_t TPS; // TPS (0% to 100%)
-	uint16_t loopsPerSecond;
-	uint16_t freeRAM;
-	uint8_t boostTarget; //boost target divided by 2 to fit in a byte
-	uint8_t boostDuty;
-	uint8_t spark; //Spark related bitfield, launchHard(0), launchSoft(1), hardLimitOn(2), softLimitOn(3), boostCutSpark(4), error(5), idleControlOn(6), sync(7)
-	uint16_t rpmDOT;
-	uint8_t ethanolPct; //Flex sensor value (or 0 if not used)
-	uint8_t flexCorrection; //Flex fuel correction (% above or below 100)
-	uint8_t flexIgnCorrection; //Ignition correction (Increased degrees of advance) for flex fuel
-	uint8_t idleLoad;
-	uint8_t testOutputs; // testEnabled(0), testActive(1)
-	uint8_t O2_2; //O2
-	uint8_t baro; //Barometer value
-	uint16_t CANin_1;
-	uint16_t CANin_2;
-	uint16_t CANin_3;
-	uint16_t CANin_4;
-	uint16_t CANin_5;
-	uint16_t CANin_6;
-	uint16_t CANin_7;
-	uint16_t CANin_8;
-	uint16_t CANin_9;
-	uint16_t CANin_10;
-	uint16_t CANin_11;
-	uint16_t CANin_12;
-	uint16_t CANin_13;
-	uint16_t CANin_14;
-	uint16_t CANin_15;
-	uint16_t CANin_16;
-	uint8_t tpsADC;
-	uint8_t getNextError;
-	uint8_t launchCorrection;
+  uint8_t secl; //secl is simply a counter that increments each second.
+  uint8_t status1; //status1 Bitfield, inj1Status(0), inj2Status(1), inj3Status(2), inj4Status(3), DFCOOn(4), boostCutFuel(5), toothLog1Ready(6), toothLog2Ready(7)
+  uint8_t engine; //Engine Status Bitfield, running(0), crank(1), ase(2), warmup(3), tpsaccaen(4), tpsacden(5), mapaccaen(6), mapaccden(7)
+  uint8_t dwell; //Dwell in ms * 10
+  uint16_t MAP; //2 bytes for MAP
+  uint8_t IAT;
+  uint8_t CLT;
+  uint8_t batCorrection; //Battery voltage correction (%)
+  uint8_t battery10; //battery voltage
+  uint8_t O2; //O2
+  uint8_t egoCorrection; //Exhaust gas correction (%)
+  uint8_t iatCorrection; //Air temperature Correction (%)
+  uint8_t wueCorrection; //Warmup enrichment (%)
+  uint16_t RPM; //rpm
+  uint8_t AEamount; //acceleration enrichment (%)
+  uint8_t corrections; //Total GammaE (%)
+  uint8_t VE; //Current VE 1 (%)
+  uint8_t afrTarget;
+  uint16_t PW1; //Pulsewidth 1 multiplied by 10 in ms. Have to convert from uS to mS.
+  uint8_t tpsDOT; //TPS DOT
+  int8_t advance;
+  uint8_t TPS; // TPS (0% to 100%)
+  uint16_t loopsPerSecond;
+  uint16_t freeRAM;
+  uint8_t boostTarget; //boost target divided by 2 to fit in a byte
+  uint8_t boostDuty;
+  uint8_t spark; //Spark related bitfield, launchHard(0), launchSoft(1), hardLimitOn(2), softLimitOn(3), boostCutSpark(4), error(5), idleControlOn(6), sync(7)
+  uint16_t rpmDOT;
+  uint8_t ethanolPct; //Flex sensor value (or 0 if not used)
+  uint8_t flexCorrection; //Flex fuel correction (% above or below 100)
+  uint8_t flexIgnCorrection; //Ignition correction (Increased degrees of advance) for flex fuel
+  uint8_t idleLoad;
+  uint8_t testOutputs; // testEnabled(0), testActive(1)
+  uint8_t O2_2; //O2
+  uint8_t baro; //Barometer value
+  uint16_t CANin_1;
+  uint16_t CANin_2;
+  uint16_t CANin_3;
+  uint16_t CANin_4;
+  uint16_t CANin_5;
+  uint16_t CANin_6;
+  uint16_t CANin_7;
+  uint16_t CANin_8;
+  uint16_t CANin_9;
+  uint16_t CANin_10;
+  uint16_t CANin_11;
+  uint16_t CANin_12;
+  uint16_t CANin_13;
+  uint16_t CANin_14;
+  uint16_t CANin_15;
+  uint16_t CANin_16;
+  uint8_t tpsADC;
+  uint8_t getNextError;
+  uint8_t launchCorrection;
 };
 
 statuses currentStatus;
@@ -547,7 +547,7 @@ void loop() {
             Serial.println("Error! DS2 Received Ack.");
             break;
           default:
-		    Serial.println("Not supported DS2 command");
+            Serial.println("Not supported DS2 command");
           break;
         }
       }
@@ -557,7 +557,7 @@ void loop() {
   else if( responseSent == true ){
     if( DS2.available() >= DS2.getEcho() ){
       DS2.readCommand(data);
-	  responseSent = false; //there is no more echo on the RX buffer, so we are ready to read new command
+      responseSent = false; //there is no more echo on the RX buffer, so we are ready to read new command
     }
   }
 #endif
