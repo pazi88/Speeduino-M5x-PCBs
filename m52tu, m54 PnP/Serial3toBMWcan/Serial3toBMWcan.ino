@@ -427,6 +427,36 @@ void processData(){   // necessary conversion for the data before sending to CAN
   currentStatus.afrTarget = SpeedyResponse[20];
   currentStatus.PW1 = ((SpeedyResponse [22] << 8) | (SpeedyResponse [21])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
   currentStatus.TPS = SpeedyResponse[25];
+  currentStatus.loopsPerSecond = ((SpeedyResponse [27] << 8) | (SpeedyResponse [26]));
+  currentStatus.freeRAM = ((SpeedyResponse [29] << 8) | (SpeedyResponse [28]));
+  currentStatus.boostTarget = SpeedyResponse[30]; //boost target divided by 2 to fit in a byte
+  currentStatus.boostDuty = SpeedyResponse[31];
+  currentStatus.spark = SpeedyResponse[32]; //Spark related bitfield, launchHard(0), launchSoft(1), hardLimitOn(2), softLimitOn(3), boostCutSpark(4), error(5), idleControlOn(6), sync(7)
+  currentStatus.rpmDOT = ((SpeedyResponse [34] << 8) | (SpeedyResponse [33]));
+  currentStatus.ethanolPct = SpeedyResponse[35]; //Flex sensor value (or 0 if not used)
+  currentStatus.flexCorrection = SpeedyResponse[36]; //Flex fuel correction (% above or below 100)
+  currentStatus.flexIgnCorrection = SpeedyResponse[37]; //Ignition correction (Increased degrees of advance) for flex fuel
+  currentStatus.idleLoad = SpeedyResponse[38];
+  currentStatus.testOutputs = SpeedyResponse[39]; // testEnabled(0), testActive(1)
+  currentStatus.O2_2 = SpeedyResponse[40]; //O2
+  currentStatus.baro = SpeedyResponse[41]; //Barometer value
+  currentStatus.CANin_1 = ((SpeedyResponse [43] << 8) | (SpeedyResponse [42]));
+  currentStatus.CANin_2 = ((SpeedyResponse [45] << 8) | (SpeedyResponse [44]));
+  currentStatus.CANin_3 = ((SpeedyResponse [47] << 8) | (SpeedyResponse [46]));
+  currentStatus.CANin_4 = ((SpeedyResponse [49] << 8) | (SpeedyResponse [48]));
+  currentStatus.CANin_5 = ((SpeedyResponse [51] << 8) | (SpeedyResponse [50]));
+  currentStatus.CANin_6 = ((SpeedyResponse [53] << 8) | (SpeedyResponse [52]));
+  currentStatus.CANin_7 = ((SpeedyResponse [55] << 8) | (SpeedyResponse [54]));
+  currentStatus.CANin_8 = ((SpeedyResponse [57] << 8) | (SpeedyResponse [56]));
+  currentStatus.CANin_9 = ((SpeedyResponse [59] << 8) | (SpeedyResponse [58]));
+  currentStatus.CANin_10 = ((SpeedyResponse [61] << 8) | (SpeedyResponse [60]));
+  currentStatus.CANin_11 = ((SpeedyResponse [63] << 8) | (SpeedyResponse [62]));
+  currentStatus.CANin_12 = ((SpeedyResponse [65] << 8) | (SpeedyResponse [64]));
+  currentStatus.CANin_13 = ((SpeedyResponse [67] << 8) | (SpeedyResponse [66]));
+  currentStatus.CANin_14 = ((SpeedyResponse [69] << 8) | (SpeedyResponse [68]));
+  currentStatus.CANin_15 = ((SpeedyResponse [71] << 8) | (SpeedyResponse [70]));
+  currentStatus.CANin_16 = ((SpeedyResponse [73] << 8) | (SpeedyResponse [72]));
+  currentStatus.tpsADC = SpeedyResponse[74];
 
   // check if received values makes sense and convert those if all is ok.
   if (currentStatus.RPM < 8000 && data_error == false)  // the engine will not probaply rev over 8000 RPM
