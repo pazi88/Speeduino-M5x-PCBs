@@ -265,8 +265,7 @@ void sendReply(uint8_t data[]) {
   addValToData(valueToSend, data, 16 + offset, 2);
   
   //Battery Voltage
-  valueToSend = convertValue(currentStatus.battery10, 0.1015625);
-  addValToData(valueToSend, data, 20 + offset, 1);
+  addValToData(currentStatus.battery10, data, 20 + offset, 1);
 
   //Lambda Int 1
   valueToSend = convertValue(currentStatus.egoCorrection, 0.0015258789, -50);
@@ -303,13 +302,13 @@ void sendEcuId(uint8_t data[]) {
   data[1] = 11;   // response length
   data[2] = 0xA0; //Ack
   //Ecu Id in ASCII, we use ms42 C6-SW version id here
-  data[3] = 37;  // 7
-  data[4] = 35;  // 5
-  data[5] = 30;  // 0
-  data[6] = 30;  // 0
-  data[7] = 32;  // 2
-  data[8] = 35;  // 5
-  data[9] = 35;  // 5
+  data[3] = 0x37;  // 7
+  data[4] = 0x35;  // 5
+  data[5] = 0x30;  // 0
+  data[6] = 0x30;  // 0
+  data[7] = 0x32;  // 2
+  data[8] = 0x35;  // 5
+  data[9] = 0x35;  // 5
   
     // Checksum
   uint8_t checksum = 0;
