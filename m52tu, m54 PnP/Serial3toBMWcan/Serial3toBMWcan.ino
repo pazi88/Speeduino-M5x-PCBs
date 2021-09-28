@@ -24,6 +24,10 @@
 #endif
 #define pin  LED_BUILTIN
 
+#define NOTHING_RECEIVED        0
+#define R_MESSAGE               1
+#define A_MESSAGE               2
+
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
 static CAN_message_t CAN_msg_MPG_CEL;
@@ -93,7 +97,6 @@ statuses currentStatus;
 
 static uint32_t oldtime=millis();   // for the timeout
 byte SpeedyResponse[100]; //The data buffer for the serial3 data. This is longer than needed, just in case
-byte ByteNumber;  // pointer to which byte number we are reading currently
 byte rpmLSB;   // Least significant byte for RPM message
 byte rpmMSB;  // Most significant byte for RPM message
 byte pwLSB;   // Least significant byte for PW message
@@ -112,11 +115,57 @@ byte TPS,tempLight;   //TPS value and overheat light on/off
 bool data_error; //indicator for the data from speeduino being ok.
 bool responseSent;  // to keep track if we have responded to data request or not.
 uint8_t data[255]; //For DS2 data
+uint8_t SerialState,canin_channel,currentCommand;
+uint16_t CanAddress;
 
 #if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
 void SendData(HardwareTimer*){void SendData();}
 #endif
  
+void requestData() {
+  Serial3.write("A"); //Send A to request real time data
+}
+
+void SendData()   // Send can messages in 32Hz phase from timer interrupt. This is important to make cluster work smoothly
+{
+  CAN_msg_RPM.buf[2]= rpmLSB; //RPM LSB
+  CAN_msg_RPM.buf[3]= rpmMSB; //RPM MSB
+  if (Can1.write(CAN_msg_RPM)) {
+    digitalWrite(pin, !digitalRead(pin)); // Just to see with internal led that CAN messages are being sent
+  }
+  //Send CLT and TPS
+  
+  CAN_msg_CLT_TPS.buf[1]= CLT; //Coolant temp
+  CAN_msg_CLT_TPS.buf[5]= TPS; //TPS value.
+  Can1.write(CAN_msg_CLT_TPS);
+
+  // Send fuel consumption and error lights
+  if (CEL < 120){  
+    if (CEL < 60){
+      CAN_msg_MPG_CEL.buf[0]= 0x12;  // keep CEL And EML on for about 2 seconds
+    }
+    else{
+      CAN_msg_MPG_CEL.buf[0]= 0x02;  // keep CEL on for about 4 seconds
+      }
+    CEL++;
+    }
+  else{
+    CAN_msg_MPG_CEL.buf[0]= 0x00;  //CEL off
+  }
+  updatePW = updatePW + ( currentStatus.PW1 * (RPM/1000) );
+  PWcount = (updatePW/5500); // fuel consumption is measured by rate of change in instrument cluster. So PW counter is increased by steps of one. And rate of update depends on PW from speeduino. This isn't yet working correctly.
+    if (PWcount == 0xFFFF)
+    {
+      PWcount = 0;
+    }
+  pwMSB = PWcount >> 8;  //split to high and low byte
+  pwLSB = PWcount;
+  CAN_msg_MPG_CEL.buf[1]= pwLSB;  //LSB Fuel consumption
+  CAN_msg_MPG_CEL.buf[2]= pwLSB;  //MSB Fuel Consumption
+  CAN_msg_MPG_CEL.buf[3]= tempLight ;  //Overheat light
+  Can1.write(CAN_msg_MPG_CEL);
+}
+
 void setup(){
   pinMode(pin, OUTPUT);
   Serial3.begin(115200);  // baudrate for Speeduino is 115200
@@ -173,6 +222,7 @@ void setup(){
   pwMSB = 0;
   CEL = 0;
   tempLight = 0;
+  SerialState = NOTHING_RECEIVED;
   data_error = false;
 
 //setup hardwaretimer to send data for instrument cluster in 32Hz pace
@@ -321,10 +371,6 @@ void sendEcuId(uint8_t data[]) {
 }
 #endif
 
-void requestData() {
-  Serial3.write("A"); //Send A to request real time data
-}
-
 void readCanMessage() {
   //worg in progress
   if ( CAN_inMsg.id == 0x613 )
@@ -347,44 +393,40 @@ void readCanMessage() {
   }
 }
 
-void SendData()   // Send can messages in 32Hz phase from timer interrupt. This is important to make cluster work smoothly
-{
-  CAN_msg_RPM.buf[2]= rpmLSB; //RPM LSB
-  CAN_msg_RPM.buf[3]= rpmMSB; //RPM MSB
-  if (Can1.write(CAN_msg_RPM)) {
-    digitalWrite(pin, !digitalRead(pin)); // Just to see with internal led that CAN messages are being sent
-  }
-  //Send CLT and TPS
-  
-  CAN_msg_CLT_TPS.buf[1]= CLT; //Coolant temp
-  CAN_msg_CLT_TPS.buf[5]= TPS; //TPS value.
-  Can1.write(CAN_msg_CLT_TPS);
-
-  // Send fuel consumption and error lights
-  if (CEL < 120){  
-    if (CEL < 60){
-      CAN_msg_MPG_CEL.buf[0]= 0x12;  // keep CEL And EML on for about 2 seconds
-    }
-    else{
-      CAN_msg_MPG_CEL.buf[0]= 0x02;  // keep CEL on for about 4 seconds
+void SendDataToSpeeduino(){
+  Serial3.write("G");                      // reply "G" cmd
+  switch (CanAddress)
+  {
+    case 0x613:  // Speeduino sends data in A-message
+      Serial3.write(1);                        //send 1 to confirm cmd received and valid
+	  Serial3.write(canin_channel);            //confirms the destination channel
+	  for (int i=0; i<8; i++) {                //write back the requested data
+        Serial3.write(13);
       }
-    CEL++;
-    }
-  else{
-    CAN_msg_MPG_CEL.buf[0]= 0x00;  //CEL off
+    break;
+    case 0x615:  // Speeduino requests data in A-message
+      Serial3.write(1);                        //send 1 to confirm cmd received and valid
+	  Serial3.write(canin_channel);            //confirms the destination channel
+      for (int i=0; i<8; i++) {                //write back the requested data
+          Serial3.write(15);
+      }
+    break;
+    case  0x153:  // Speeduino requests data in A-message
+      Serial3.write(1);                        //send 1 to confirm cmd received and valid
+	  Serial3.write(canin_channel);            //confirms the destination channel
+      for (int i=0; i<8; i++) {                //write back the requested data
+          Serial3.write(53);
+      }
+    break;
+    default:
+      Serial3.write(0);                        //send 0 to confirm cmd received but not valid
+      Serial3.write(canin_channel);            //destination channel
+	  for (int i=0; i<8; i++) {                //we need to still write some crap as an response
+          Serial3.write(0);
+      }
+      Serial.print ("Wrong CAN address");
+    break;
   }
-  updatePW = updatePW + ( currentStatus.PW1 * (RPM/1000) );
-  PWcount = (updatePW/5500); // fuel consumption is measured by rate of change in instrument cluster. So PW counter is increased by steps of one. And rate of update depends on PW from speeduino. This isn't yet working correctly.
-    if (PWcount == 0xFFFF)
-    {
-      PWcount = 0;
-    }
-  pwMSB = PWcount >> 8;  //split to high and low byte
-  pwLSB = PWcount;
-  CAN_msg_MPG_CEL.buf[1]= pwLSB;  //LSB Fuel consumption
-  CAN_msg_MPG_CEL.buf[2]= pwLSB;  //MSB Fuel Consumption
-  CAN_msg_MPG_CEL.buf[3]= tempLight ;  //Overheat light
-  Can1.write(CAN_msg_MPG_CEL);
 }
 
 //display the needed values in serial monitor for debugging
@@ -401,61 +443,56 @@ void processData(){   // necessary conversion for the data before sending to CAN
   unsigned int tempRPM;
   data_error = false; // set the received data as ok
 
-  if (SpeedyResponse[0] != 65)  //The first data received should be A (65 is ascii)
-    {
-      data_error = true; //data received is probaply corrupted, don't use it.
-      Serial.print ("Not an A message");
-    }
-  currentStatus.secl = SpeedyResponse[1];
-  currentStatus.status1 = SpeedyResponse[2];
-  currentStatus.engine = SpeedyResponse[3];
-  currentStatus.dwell = SpeedyResponse[4];
-  currentStatus.MAP = ((SpeedyResponse [6] << 8) | (SpeedyResponse [5]));
-  currentStatus.IAT = SpeedyResponse[7];
-  currentStatus.CLT = SpeedyResponse[8];
-  currentStatus.batCorrection = SpeedyResponse[9];
-  currentStatus.battery10 = SpeedyResponse[10];
-  currentStatus.O2 = SpeedyResponse[11];
-  currentStatus.egoCorrection = SpeedyResponse[12];
-  currentStatus.iatCorrection = SpeedyResponse[13];
-  currentStatus.wueCorrection = SpeedyResponse[14];
-  currentStatus.RPM = ((SpeedyResponse [16] << 8) | (SpeedyResponse [15])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
-  currentStatus.AEamount = SpeedyResponse[17];
-  currentStatus.corrections = SpeedyResponse[18];
-  currentStatus.VE = SpeedyResponse[19];
-  currentStatus.afrTarget = SpeedyResponse[20];
-  currentStatus.PW1 = ((SpeedyResponse [22] << 8) | (SpeedyResponse [21])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
-  currentStatus.TPS = SpeedyResponse[25];
-  currentStatus.loopsPerSecond = ((SpeedyResponse [27] << 8) | (SpeedyResponse [26]));
-  currentStatus.freeRAM = ((SpeedyResponse [29] << 8) | (SpeedyResponse [28]));
-  currentStatus.boostTarget = SpeedyResponse[30]; //boost target divided by 2 to fit in a byte
-  currentStatus.boostDuty = SpeedyResponse[31];
-  currentStatus.spark = SpeedyResponse[32]; //Spark related bitfield, launchHard(0), launchSoft(1), hardLimitOn(2), softLimitOn(3), boostCutSpark(4), error(5), idleControlOn(6), sync(7)
-  currentStatus.rpmDOT = ((SpeedyResponse [34] << 8) | (SpeedyResponse [33]));
-  currentStatus.ethanolPct = SpeedyResponse[35]; //Flex sensor value (or 0 if not used)
-  currentStatus.flexCorrection = SpeedyResponse[36]; //Flex fuel correction (% above or below 100)
-  currentStatus.flexIgnCorrection = SpeedyResponse[37]; //Ignition correction (Increased degrees of advance) for flex fuel
-  currentStatus.idleLoad = SpeedyResponse[38];
-  currentStatus.testOutputs = SpeedyResponse[39]; // testEnabled(0), testActive(1)
-  currentStatus.O2_2 = SpeedyResponse[40]; //O2
-  currentStatus.baro = SpeedyResponse[41]; //Barometer value
-  currentStatus.CANin_1 = ((SpeedyResponse [43] << 8) | (SpeedyResponse [42]));
-  currentStatus.CANin_2 = ((SpeedyResponse [45] << 8) | (SpeedyResponse [44]));
-  currentStatus.CANin_3 = ((SpeedyResponse [47] << 8) | (SpeedyResponse [46]));
-  currentStatus.CANin_4 = ((SpeedyResponse [49] << 8) | (SpeedyResponse [48]));
-  currentStatus.CANin_5 = ((SpeedyResponse [51] << 8) | (SpeedyResponse [50]));
-  currentStatus.CANin_6 = ((SpeedyResponse [53] << 8) | (SpeedyResponse [52]));
-  currentStatus.CANin_7 = ((SpeedyResponse [55] << 8) | (SpeedyResponse [54]));
-  currentStatus.CANin_8 = ((SpeedyResponse [57] << 8) | (SpeedyResponse [56]));
-  currentStatus.CANin_9 = ((SpeedyResponse [59] << 8) | (SpeedyResponse [58]));
-  currentStatus.CANin_10 = ((SpeedyResponse [61] << 8) | (SpeedyResponse [60]));
-  currentStatus.CANin_11 = ((SpeedyResponse [63] << 8) | (SpeedyResponse [62]));
-  currentStatus.CANin_12 = ((SpeedyResponse [65] << 8) | (SpeedyResponse [64]));
-  currentStatus.CANin_13 = ((SpeedyResponse [67] << 8) | (SpeedyResponse [66]));
-  currentStatus.CANin_14 = ((SpeedyResponse [69] << 8) | (SpeedyResponse [68]));
-  currentStatus.CANin_15 = ((SpeedyResponse [71] << 8) | (SpeedyResponse [70]));
-  currentStatus.CANin_16 = ((SpeedyResponse [73] << 8) | (SpeedyResponse [72]));
-  currentStatus.tpsADC = SpeedyResponse[74];
+currentStatus.secl = SpeedyResponse[0];
+  currentStatus.status1 = SpeedyResponse[1];
+  currentStatus.engine = SpeedyResponse[2];
+  currentStatus.dwell = SpeedyResponse[3];
+  currentStatus.MAP = ((SpeedyResponse [5] << 8) | (SpeedyResponse [4]));
+  currentStatus.IAT = SpeedyResponse[6];
+  currentStatus.CLT = SpeedyResponse[7];
+  currentStatus.batCorrection = SpeedyResponse[8];
+  currentStatus.battery10 = SpeedyResponse[9];
+  currentStatus.O2 = SpeedyResponse[10];
+  currentStatus.egoCorrection = SpeedyResponse[11];
+  currentStatus.iatCorrection = SpeedyResponse[12];
+  currentStatus.wueCorrection = SpeedyResponse[13];
+  currentStatus.RPM = ((SpeedyResponse [15] << 8) | (SpeedyResponse [14])); // RPM low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+  currentStatus.AEamount = SpeedyResponse[16];
+  currentStatus.corrections = SpeedyResponse[17];
+  currentStatus.VE = SpeedyResponse[18];
+  currentStatus.afrTarget = SpeedyResponse[19];
+  currentStatus.PW1 = ((SpeedyResponse [21] << 8) | (SpeedyResponse [20])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+  currentStatus.TPS = SpeedyResponse[24];
+  currentStatus.loopsPerSecond = ((SpeedyResponse [26] << 8) | (SpeedyResponse [25]));
+  currentStatus.freeRAM = ((SpeedyResponse [28] << 8) | (SpeedyResponse [27]));
+  currentStatus.boostTarget = SpeedyResponse[29]; //boost target divided by 2 to fit in a byte
+  currentStatus.boostDuty = SpeedyResponse[30];
+  currentStatus.spark = SpeedyResponse[31]; //Spark related bitfield, launchHard(0), launchSoft(1), hardLimitOn(2), softLimitOn(3), boostCutSpark(4), error(5), idleControlOn(6), sync(7)
+  currentStatus.rpmDOT = ((SpeedyResponse [33] << 8) | (SpeedyResponse [32]));
+  currentStatus.ethanolPct = SpeedyResponse[34]; //Flex sensor value (or 0 if not used)
+  currentStatus.flexCorrection = SpeedyResponse[35]; //Flex fuel correction (% above or below 100)
+  currentStatus.flexIgnCorrection = SpeedyResponse[36]; //Ignition correction (Increased degrees of advance) for flex fuel
+  currentStatus.idleLoad = SpeedyResponse[37];
+  currentStatus.testOutputs = SpeedyResponse[38]; // testEnabled(0), testActive(1)
+  currentStatus.O2_2 = SpeedyResponse[39]; //O2
+  currentStatus.baro = SpeedyResponse[40]; //Barometer value
+  currentStatus.CANin_1 = ((SpeedyResponse [42] << 8) | (SpeedyResponse [41]));
+  currentStatus.CANin_2 = ((SpeedyResponse [44] << 8) | (SpeedyResponse [43]));
+  currentStatus.CANin_3 = ((SpeedyResponse [46] << 8) | (SpeedyResponse [45]));
+  currentStatus.CANin_4 = ((SpeedyResponse [48] << 8) | (SpeedyResponse [47]));
+  currentStatus.CANin_5 = ((SpeedyResponse [50] << 8) | (SpeedyResponse [49]));
+  currentStatus.CANin_6 = ((SpeedyResponse [52] << 8) | (SpeedyResponse [51]));
+  currentStatus.CANin_7 = ((SpeedyResponse [54] << 8) | (SpeedyResponse [53]));
+  currentStatus.CANin_8 = ((SpeedyResponse [56] << 8) | (SpeedyResponse [55]));
+  currentStatus.CANin_9 = ((SpeedyResponse [58] << 8) | (SpeedyResponse [57]));
+  currentStatus.CANin_10 = ((SpeedyResponse [60] << 8) | (SpeedyResponse [59]));
+  currentStatus.CANin_11 = ((SpeedyResponse [62] << 8) | (SpeedyResponse [61]));
+  currentStatus.CANin_12 = ((SpeedyResponse [64] << 8) | (SpeedyResponse [63]));
+  currentStatus.CANin_13 = ((SpeedyResponse [66] << 8) | (SpeedyResponse [65]));
+  currentStatus.CANin_14 = ((SpeedyResponse [68] << 8) | (SpeedyResponse [67]));
+  currentStatus.CANin_15 = ((SpeedyResponse [70] << 8) | (SpeedyResponse [69]));
+  currentStatus.CANin_16 = ((SpeedyResponse [71] << 8) | (SpeedyResponse [71]));
+  currentStatus.tpsADC = SpeedyResponse[73];
 
   // check if received values makes sense and convert those if all is ok.
   if (currentStatus.RPM < 8000 && data_error == false)  // the engine will not probaply rev over 8000 RPM
@@ -498,30 +535,71 @@ void processData(){   // necessary conversion for the data before sending to CAN
   }
 }
 
+void HandleA()
+{
+  Serial.print ("A ");
+  data_error = false;
+  for (int i=0; i<75; i++) {
+    SpeedyResponse[i] = Serial3.read();
+    }
+  processData();                  // do the necessary processing for received data
+  displayData();                  // only required for debugging
+  requestData();                  // restart data reading
+  oldtime = millis();             // zero the timeout
+  SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
+}
+
+void HandleR()
+{
+  Serial.println ("R ");
+  byte tmp0;
+  byte tmp1;
+  canin_channel = Serial3.read();
+  tmp0 = Serial3.read();  // read in lsb of source can address
+  tmp1 = Serial3.read();  // read in msb of source can address
+  CanAddress = tmp1<<8 | tmp0 ;
+  SendDataToSpeeduino();  // send the data to speeduino
+  SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
+}
+
+void ReadSerial()
+{
+  currentCommand = Serial3.read();
+  switch (currentCommand)
+  {
+    case 'A':  // Speeduino sends data in A-message
+      SerialState = A_MESSAGE;
+    break;
+    case 'R':  // Speeduino requests data in A-message
+      SerialState = R_MESSAGE;
+    break;
+    default:
+      Serial.print ("Not an A or R message ");
+      Serial.println (currentCommand);
+    break;
+  }
+}
+
 // main loop
 void loop() {
-  if (Serial3.available () > 0) {  // read bytes from serial3
-    SpeedyResponse[ByteNumber ++] = Serial3.read();
+  switch(SerialState) {
+    case NOTHING_RECEIVED:
+      if (Serial3.available() > 0) { ReadSerial(); }  // read bytes from serial3 to define what message speeduino is sending.
+      break;
+    case A_MESSAGE:
+      if (Serial3.available() >= 74) { HandleA(); }  // read and process the A-message from serial3, when it's fully received.
+      break;
+    case R_MESSAGE:
+      if (Serial3.available() >= 3) {  HandleR(); }  // read and process the R-message from serial3, when it's fully received.
+      break;
+    default:
+      break;
   }
-  if (ByteNumber > (75)){        // After 75 bytes all the data from speeduino has been received so time to process it (A + 74 databytes)
-    oldtime = millis();          // All ok. zero out timeout calculation
-    ByteNumber = 0;              // zero out the byte number pointer
-    processData();               // do the necessary processing for received data
-    if (data_error) {               // while processing the data, there has been problem, so read everything from serial buffer and start over
-      Serial.println ("Speeduino data error!");
-      while (Serial3.available() ) {
-        Serial3.read();
-      }
-    }
-    else {
-      displayData();             // only required for debugging
-    }
-    requestData();               //restart data reading
-  }
+
   if ( (millis()-oldtime) > 500) { // timeout if for some reason reading serial3 fails
     oldtime = millis();
-    ByteNumber = 0;                // zero out the byte number pointer
     Serial.println ("Timeout from speeduino!");
+    Serial.println (Serial3.available ());
     requestData();                //restart data reading
   }
   //we can also read stuff back from instrument cluster
