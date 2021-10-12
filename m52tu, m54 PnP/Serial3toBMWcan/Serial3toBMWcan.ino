@@ -119,6 +119,7 @@ uint8_t data[255]; // For DS2 data
 uint8_t SerialState,canin_channel,currentCommand;
 uint16_t CanAddress,runningClock;
 uint16_t VSS,VSS1,VSS2,VSS3,VSS4;
+byte MSGcounter; //this keeps track of which multiplexed info is sent in 0x329 byte 0
 
 #if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
 void SendData(HardwareTimer*){void SendData();}
@@ -139,6 +140,28 @@ void SendData()   // Send can messages in 32Hz phase from timer interrupt. This 
   
   CAN_msg_CLT_TPS.buf[1]= CLT; // Coolant temp
   CAN_msg_CLT_TPS.buf[5]= TPS; // TPS value.
+    //Multiplexed Information in byte0
+  switch (MSGcounter) {
+  case 0: //CAN_LEVEL
+    CAN_msg_CLT_TPS.buf[0]= 0x11;
+    break;
+  case 1: //OBD_STEUER
+    if (RPM << 400)
+    {
+      CAN_msg_CLT_TPS.buf[0]= 0x80;
+    }
+	else
+	{
+      CAN_msg_CLT_TPS.buf[0]= 0x86;
+    }
+    break;
+  case 2: //MD_NORM
+    CAN_msg_CLT_TPS.buf[0]= 0xD9;
+    break;
+  default:
+    CAN_msg_CLT_TPS.buf[0]= 0x11;
+    break;
+}
   Can1.write(CAN_msg_CLT_TPS);
 
   // Send fuel consumption and error lights
@@ -166,6 +189,11 @@ void SendData()   // Send can messages in 32Hz phase from timer interrupt. This 
   CAN_msg_MPG_CEL.buf[2]= pwLSB;  // MSB Fuel Consumption
   CAN_msg_MPG_CEL.buf[3]= tempLight ;  // Overheat light
   Can1.write(CAN_msg_MPG_CEL);
+  MSGcounter++;
+  if (MSGcounter >= 3)
+  {
+    MSGcounter = 0;
+  }
 }
 
 void setup(){
@@ -200,16 +228,16 @@ void setup(){
   Can1.write(CAN_msg_MPG_CEL);
 
 // set the static values for the other two messages
-  CAN_msg_RPM.buf[0]= 0x00;
-  CAN_msg_RPM.buf[1]= 0x07;
-  CAN_msg_RPM.buf[4]= 0x65;
-  CAN_msg_RPM.buf[5]= 0x12;
-  CAN_msg_RPM.buf[6]= 0x00;
-  CAN_msg_RPM.buf[7]= 0x62;
+  CAN_msg_RPM.buf[0]= 0x05;  //bitfield, Bit0 = 1 = terminal 15 on detected, Bit2 = 1 = 1 = the ASC message ASC1 was received within the last 500 ms and contains no plausibility errors
+  CAN_msg_RPM.buf[1]= 0x0C;  //Indexed Engine Torque in % of C_TQ_STND TBD do torque calculation!!
+  CAN_msg_RPM.buf[4]= 0x0C;  //Indicated Engine Torque in % of C_TQ_STND TBD do torque calculation!! Use same as for byte 1
+  CAN_msg_RPM.buf[5]= 0x15;  //Engine Torque Loss (due to engine friction, AC compressor and electrical power consumption)
+  CAN_msg_RPM.buf[6]= 0x00;  //not used
+  CAN_msg_RPM.buf[7]= 0x35;  //Theorethical Engine Torque in % of C_TQ_STND after charge intervention
 
-  CAN_msg_CLT_TPS.buf[0]= 0x07;
+  CAN_msg_CLT_TPS.buf[0]= 0x11;
   CAN_msg_CLT_TPS.buf[2]= 0xB2;
-  CAN_msg_CLT_TPS.buf[3]= 0x19;
+  CAN_msg_CLT_TPS.buf[3]= 0x00;
   CAN_msg_CLT_TPS.buf[4]= 0x00;
   CAN_msg_CLT_TPS.buf[6]= 0x00;
   CAN_msg_CLT_TPS.buf[7]= 0x00; // not used, but set to zero just in case.
@@ -228,15 +256,16 @@ void setup(){
   data_error = false;
   responseSent = false;
   newData = false;
+  MSGcounter = 0;
 
-// setup hardwaretimer to send data for instrument cluster in 32Hz pace
+// setup hardwaretimer to send data for instrument cluster in 100Hz pace
 #if defined(TIM1)
   TIM_TypeDef *Instance = TIM1;
 #else
   TIM_TypeDef *Instance = TIM2;
 #endif
   HardwareTimer *SendTimer = new HardwareTimer(Instance);
-  SendTimer->setOverflow(32, HERTZ_FORMAT); // 32 Hz
+  SendTimer->setOverflow(100, HERTZ_FORMAT); // 100 Hz
 #if ( STM32_CORE_VERSION_MAJOR < 2 )
   SendTimer->attachInterrupt(1, SendData);
   SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
