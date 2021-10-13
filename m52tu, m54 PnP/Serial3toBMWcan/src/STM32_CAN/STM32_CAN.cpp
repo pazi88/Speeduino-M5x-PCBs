@@ -349,15 +349,29 @@ void STM32_CAN::setBaudRate(uint32_t baud)
   {
     CAN1->BTR &= ~(((0x03) << 24) | ((0x07) << 20) | ((0x0F) << 16) | (0x1FF)); 
     CAN1->BTR |=  (((can_configs[bitrate].TS2-1) & 0x07) << 20) | (((can_configs[bitrate].TS1-1) & 0x0F) << 16) | ((can_configs[bitrate].BRP-1) & 0x1FF);
-
+  }
+  #if defined(CAN2)
+  else if (_channel == _CAN2)
+  {
+    CAN2->BTR &= ~(((0x03) << 24) | ((0x07) << 20) | ((0x0F) << 16) | (0x1FF)); 
+    CAN2->BTR |=  (((can_configs[bitrate].TS2-1) & 0x07) << 20) | (((can_configs[bitrate].TS1-1) & 0x0F) << 16) | ((can_configs[bitrate].BRP-1) & 0x1FF); 
+  }
+  #endif
+  
     // Configure Filters to default values
     CAN1->FMR  |=   0x1UL;                 // Set to filter initialization mode
     CAN1->FMR  &= 0xFFFFC0FF;              // Clear CAN2 start bank
 
     // bxCAN has 28 filters.
     // These filters are used for both CAN1 and CAN2.
-    // STM32F405 has CAN1 and CAN2, so CAN2 filters are offset by 14
+    #if defined(STM32F1xx)
+    // STM32F1xx has only CAN1, so all 28 are used for CAN1
+    CAN1->FMR  |= 0x1C << 8;              // Assign all filters to CAN1
+
+    #elif defined(STM32F4xx)
+    // STM32F4xx has CAN1 and CAN2, so CAN2 filters are offset by 14
     CAN1->FMR  |= 0xE00;                   // Start bank for the CAN2 interface
+    #endif
 
     // Set filter 0
     // Single 32-bit scale configuration 
@@ -372,42 +386,6 @@ void STM32_CAN::setBaudRate(uint32_t baud)
     // Filter assigned to FIFO 0 
     // Filter bank register to all 0
     CANSetFilter(14, 1, 0, 0, 0x0UL, 0x0UL); 
-  }
-  #if defined(CAN2)
-  else if (_channel == _CAN2)
-  {
-    CAN2->BTR &= ~(((0x03) << 24) | ((0x07) << 20) | ((0x0F) << 16) | (0x1FF)); 
-    CAN2->BTR |=  (((can_configs[bitrate].TS2-1) & 0x07) << 20) | (((can_configs[bitrate].TS1-1) & 0x0F) << 16) | ((can_configs[bitrate].BRP-1) & 0x1FF); 
-    // Configure Filters to default values
-    CAN2->FMR  |=   0x1UL;                 // Set to filter initialization mode
-    CAN2->FMR  &= 0xFFFFC0FF;              // Clear CAN2 start bank
-
-    // bxCAN has 28 filters.
-    // These filters are used for both CAN1 and CAN2.
-    #if defined(STM32F4xx)
-    // STM32F4xx has CAN1 and CAN2, so CAN2 filters are offset by 14
-    CAN2->FMR  |= 0xE00;                   // Start bank for the CAN2 interface
-
-    // Set filter 14
-    // Single 32-bit scale configuration 
-    // Two 32-bit registers of filter bank x are in Identifier Mask mode
-    // Filter assigned to FIFO 0 
-    // Filter bank register to all 0
-    CANSetFilter(14, 1, 0, 0, 0x0UL, 0x0UL);
-
-    #elif defined(STM32F1xx)
-    // STM32F1xx has only CAN1, so all 28 are used for CAN1
-    CAN1->FMR  |= 0x1C << 8;              // Assign all filters to CAN1
-    #endif
-
-    // Set filter 0
-    // Single 32-bit scale configuration 
-    // Two 32-bit registers of filter bank x are in Identifier Mask mode
-    // Filter assigned to FIFO 0 
-    // Filter bank register to all 0
-    CANSetFilter(0, 1, 0, 0, 0x0UL, 0x0UL); 
-  }
-  #endif
 
   if (_channel == _CAN1)
   {
