@@ -84,6 +84,19 @@ M52TU has cable drive semi-DBW system that can be used with this board without m
 with M50/M52 one, follow this wiring diagram to adapt to M50/M52 TPS wiring:
 ![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/M52TU-M50TPS.png?raw=true)
 
+Wire color abbreviations:
+- braun BR = brown
+- blau BL = blue
+- rot RT = red
+- gelb GE = yellow
+- grau GR = gray
+- schwarz SW = black
+- weiss (weiß ) WS = white
+- grun GN = green
+- orange OR = orange
+- rosa RS = pink
+- violett VI = violet
+
 ## Bosch LSU 4.9 Wideband sensor wiring
 
 If internal Spartan 2 OEM or TinyWB wideband controller is used, it has 6-pin Molex Minifit Jr. Connecor with following pinout:
