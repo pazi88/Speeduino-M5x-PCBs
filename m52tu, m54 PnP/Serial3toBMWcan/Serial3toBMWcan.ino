@@ -33,7 +33,7 @@ static CAN_message_t CAN_msg_CLT_TPS;
 static CAN_message_t CAN_msg_MPG_CEL;
 static CAN_message_t CAN_inMsg;
 
-STM32_CAN Can1 (_CAN1,DEF);
+//STM32_CAN Can1 (_CAN1,DEF);
 
 // This struct gathers data read from speeduino
 struct statuses {
@@ -96,30 +96,31 @@ struct statuses {
 statuses currentStatus;
 
 static uint32_t oldtime=millis();   // for the timeout
-byte SpeedyResponse[100]; //The data buffer for the serial3 data. This is longer than needed, just in case
-byte rpmLSB;   // Least significant byte for RPM message
-byte rpmMSB;  // Most significant byte for RPM message
-byte pwLSB;   // Least significant byte for PW message
-byte pwMSB;  // Most significant byte for PW message
-byte CEL;   //timer for how long CEL light be kept on
+uint8_t SpeedyResponse[100]; //The data buffer for the serial3 data. This is longer than needed, just in case
+uint8_t rpmLSB;   // Least significant byte for RPM message
+uint8_t rpmMSB;  // Most significant byte for RPM message
+uint8_t pwLSB;   // Least significant byte for PW message
+uint8_t pwMSB;  // Most significant byte for PW message
+uint8_t CEL;   //timer for how long CEL light be kept on
 uint32_t updatePW;
-byte odometerLSB;
-byte odometerMSB;
-byte FuelLevel;
-byte ambientTemp;
-byte vssCanLSB;
-byte vssCanMSB;
+uint8_t odometerLSB;
+uint8_t odometerMSB;
+uint8_t FuelLevel;
+uint8_t ambientTemp;
+uint8_t vssCanLSB;
+uint8_t vssCanMSB;
 int CLT; // to store coolant temp
-unsigned int RPM,PW,PWcount; // RPM and PW from speeduino
-byte TPS,tempLight; // TPS value and overheat light on/off
+unsigned int PW,PWcount; // RPM and PW from speeduino
+uint8_t TPS,tempLight; // TPS value and overheat light on/off
 bool data_error; //indicator for the data from speeduino being ok.
 bool responseSent; // to keep track if we have responded to data request or not.
 bool newData; // This tells if we have new data available from speeduino or not.
+bool ascMSG; // ASC message received.
 uint8_t data[255]; // For DS2 data
 uint8_t SerialState,canin_channel,currentCommand;
 uint16_t CanAddress,runningClock;
 uint16_t VSS,VSS1,VSS2,VSS3,VSS4;
-byte MSGcounter; //this keeps track of which multiplexed info is sent in 0x329 byte 0
+uint8_t MSGcounter; //this keeps track of which multiplexed info is sent in 0x329 byte 0
 
 #if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
 void SendData(HardwareTimer*){void SendData();}
@@ -129,11 +130,17 @@ void requestData() {
   Serial3.write("A"); // Send A to request real time data
 }
 
-void SendData()   // Send can messages in 32Hz phase from timer interrupt. This is important to make cluster work smoothly
+void SendData()   // Send can messages in 50Hz phase from timer interrupt. This is important to be high enough Hz rate to make cluster work smoothly.
 {
+  if (ascMSG) {
+    CAN_msg_RPM.buf[0]= 0x05;
+  }
+  else {
+    CAN_msg_RPM.buf[0]= 0x01;
+  }	
   CAN_msg_RPM.buf[2]= rpmLSB; // RPM LSB
   CAN_msg_RPM.buf[3]= rpmMSB; // RPM MSB
-  if (Can1.write(CAN_msg_RPM)) {
+  if ( Can1.write(CAN_msg_RPM) ){
     digitalWrite(pin, !digitalRead(pin)); // Just to see with internal led that CAN messages are being sent
   }
   //Send CLT and TPS
@@ -145,8 +152,11 @@ void SendData()   // Send can messages in 32Hz phase from timer interrupt. This 
   case 0: //CAN_LEVEL
     CAN_msg_CLT_TPS.buf[0]= 0x11;
     break;
-  case 1: //OBD_STEUER
-    if (RPM << 400)
+  case 1: //CAN_LEVEL
+    //nothing
+    break;
+  case 2: //OBD_STEUER
+    if (currentStatus.RPM << 400)
     {
       CAN_msg_CLT_TPS.buf[0]= 0x80;
     }
@@ -155,8 +165,14 @@ void SendData()   // Send can messages in 32Hz phase from timer interrupt. This 
       CAN_msg_CLT_TPS.buf[0]= 0x86;
     }
     break;
-  case 2: //MD_NORM
+  case 3: //OBD_STEUER
+    //nothing
+    break;
+  case 4: //MD_NORM
     CAN_msg_CLT_TPS.buf[0]= 0xD9;
+    break;
+  case 5: //MD_NORM
+    //nothing
     break;
   default:
     CAN_msg_CLT_TPS.buf[0]= 0x11;
@@ -165,8 +181,8 @@ void SendData()   // Send can messages in 32Hz phase from timer interrupt. This 
   Can1.write(CAN_msg_CLT_TPS);
 
   // Send fuel consumption and error lights
-  if (CEL < 120){  
-    if (CEL < 60){
+  if (CEL < 200){  
+    if (CEL < 100){
       CAN_msg_MPG_CEL.buf[0]= 0x12;  // keep CEL And EML on for about 2 seconds
     }
     else{
@@ -177,7 +193,7 @@ void SendData()   // Send can messages in 32Hz phase from timer interrupt. This 
   else{
     CAN_msg_MPG_CEL.buf[0]= 0x00;  // CEL off
   }
-  updatePW = updatePW + ( currentStatus.PW1 * (RPM/1000) );
+  updatePW = updatePW + ( currentStatus.PW1 * (currentStatus.RPM/1000) );
   PWcount = (updatePW/5500); // fuel consumption is measured by rate of change in instrument cluster. So PW counter is increased by steps of one. And rate of update depends on PW from speeduino. This isn't yet working correctly.
     if (PWcount == 0xFFFF)
     {
@@ -190,7 +206,7 @@ void SendData()   // Send can messages in 32Hz phase from timer interrupt. This 
   CAN_msg_MPG_CEL.buf[3]= tempLight ;  // Overheat light
   Can1.write(CAN_msg_MPG_CEL);
   MSGcounter++;
-  if (MSGcounter >= 3)
+  if (MSGcounter >= 6)
   {
     MSGcounter = 0;
   }
@@ -205,7 +221,7 @@ void setup(){
   Serial2.setTimeout(ISO_TIMEOUT);
   #endif
   
-  Can1.begin();
+  Can1.begin( false);
   Can1.setBaudRate(500000);
 
   CAN_msg_RPM.len = 8; // 8 bytes in can message
@@ -228,7 +244,7 @@ void setup(){
   Can1.write(CAN_msg_MPG_CEL);
 
 // set the static values for the other two messages
-  CAN_msg_RPM.buf[0]= 0x05;  //bitfield, Bit0 = 1 = terminal 15 on detected, Bit2 = 1 = 1 = the ASC message ASC1 was received within the last 500 ms and contains no plausibility errors
+  CAN_msg_RPM.buf[0]= 0x01;  //bitfield, Bit0 = 1 = terminal 15 on detected, Bit2 = 1 = 1 = the ASC message ASC1 was received within the last 500 ms and contains no plausibility errors
   CAN_msg_RPM.buf[1]= 0x0C;  //Indexed Engine Torque in % of C_TQ_STND TBD do torque calculation!!
   CAN_msg_RPM.buf[4]= 0x0C;  //Indicated Engine Torque in % of C_TQ_STND TBD do torque calculation!! Use same as for byte 1
   CAN_msg_RPM.buf[5]= 0x15;  //Engine Torque Loss (due to engine friction, AC compressor and electrical power consumption)
@@ -257,6 +273,7 @@ void setup(){
   responseSent = false;
   newData = false;
   MSGcounter = 0;
+  ascMSG = false;
 
 // setup hardwaretimer to send data for instrument cluster in 100Hz pace
 #if defined(TIM1)
@@ -265,7 +282,7 @@ void setup(){
   TIM_TypeDef *Instance = TIM2;
 #endif
   HardwareTimer *SendTimer = new HardwareTimer(Instance);
-  SendTimer->setOverflow(100, HERTZ_FORMAT); // 100 Hz
+  SendTimer->setOverflow(50, HERTZ_FORMAT); // 50 Hz
 #if ( STM32_CORE_VERSION_MAJOR < 2 )
   SendTimer->attachInterrupt(1, SendData);
   SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
@@ -414,13 +431,14 @@ void readCanMessage() {
       //Serial.print ("Odometer: "); Serial.println (odometerLSB + (odometerMSB << 8));
       FuelLevel = CAN_inMsg.buf[2];
       //Serial.print ("Fuel level: "); Serial.println (FuelLevel);
-	  runningClock = ((CAN_inMsg.buf[4] << 8) | (CAN_inMsg.buf[3]));
+      runningClock = ((CAN_inMsg.buf[4] << 8) | (CAN_inMsg.buf[3]));
     break;
     case 0x615:
       ambientTemp = CAN_inMsg.buf[3];
       //Serial.print ("Outside temp: "); Serial.println (ambientTemp);
     break;
     case  0x153: 
+      ascMSG = true;
       VSS = ((CAN_inMsg.buf[2] << 8) | (CAN_inMsg.buf[1]));
       // conversion (speeduino doesn't have internal conversion for CAN data, so we do it here)
       VSS = VSS - 252;
@@ -512,8 +530,8 @@ void SendDataToSpeeduino(){
 
 // display the needed values in serial monitor for debugging
 void displayData(){
-  Serial.print ("RPM-"); Serial.print (RPM); Serial.print("\t");
-  Serial.print ("PW-"); Serial.print (PW); Serial.print("\t");
+  Serial.print ("RPM-"); Serial.print (currentStatus.RPM); Serial.print("\t");
+  Serial.print ("PW-"); Serial.print (currentStatus.PW1); Serial.print("\t");
   Serial.print ("PWcount-"); Serial.print (PWcount); Serial.print("\t");
   Serial.print ("CLT-"); Serial.print (CLT); Serial.print("\t");
   Serial.print ("TPS-"); Serial.print (TPS); Serial.println("\t");
@@ -585,7 +603,7 @@ currentStatus.secl = SpeedyResponse[0];
   else
   {
     data_error = true; // data received is probaply corrupted, don't use it.
-    Serial.print ("Error. RPM Received:"); Serial.print (RPM); Serial.print("\t");
+    Serial.print ("Error. RPM Received:"); Serial.print (currentStatus.RPM); Serial.print("\t");
   }
 
   if (currentStatus.CLT < 182 && data_error == false)  // 142 degrees Celcius is the hottest temp that fits to the conversion. 
@@ -607,7 +625,7 @@ currentStatus.secl = SpeedyResponse[0];
 
   if (currentStatus.TPS < 101 && data_error == false)  // TPS values can only be from 0-100
   {
-    TPS = map(currentStatus.TPS, 0, 100, 1, 254); // 0-100 TPS value mapped to 0x01 to 0xFE range.
+    TPS = map(currentStatus.TPS, 0, 100, 0, 254); // 0-100 TPS value mapped to 0x00 to 0xFE range.
 	newData = true; // we have now new data and it passes the checks.
   }
   else
