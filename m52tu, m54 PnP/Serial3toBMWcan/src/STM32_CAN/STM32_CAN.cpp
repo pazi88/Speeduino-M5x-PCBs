@@ -1,55 +1,34 @@
-/* -------------------------------------------------------------------------------------------
- simpel CAN driver for stm32 devices using HAL
-
- Before you can use this driver you need to enable the CAN module in the HAL configuration file,
- for a stm32f103 blue board you have to find the stm32f1xx_hal_conf.h 
- file and uncomment #define HAL_CAN_MODULE_ENABLED
- 
- This can be used in a C++ projects by replacing the
- #include <Arduino.h> with the include for the used HAL for example;  
- #include <stm32f1xx_hal.h>
- 
- Inspired by the following giving me the input needed to make this work:
- https://github.com/jiauka/stm32Can
- https://gist.github.com/Arman92/154e2540847b32c44c29
- https://github.com/collin80
- st's CAN examples and documentation
- 
----------------------------------------------------------------------------------------------*/
-
-
 #include "STM32_CAN.h"
 
-static CAN_HandleTypeDef     hcan1;
-static CAN_HandleTypeDef     hcan2;
-
-// instantiate the canbus adapter(s)
-stm32Can Can1( &hcan1, 1 );
-
-#ifdef CAN2
-stm32Can Can2( &hcan2, 2 );
-#endif
-
-/* Constructor */
-stm32Can::stm32Can( CAN_HandleTypeDef* pCanHandle, int portNumber ) {
+STM32_CAN::STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins ) {
 
   if (_canIsActive) { return; }
-
-  n_pCanHandle = pCanHandle;
   
   sizeRxBuffer=SIZE_RX_BUFFER; //default value, use setRxBufferSize to change it before begin
   sizeTxBuffer=SIZE_TX_BUFFER; //default value, use setTxBufferSize to change it before begin
+  
+  if ( canPort == CAN1 ) {
+    _CAN1 = this;
+    n_pCanHandle = &hcan1;
+  }
+  #ifdef CAN2
+  if ( canPort == CAN2 ) {
+    _CAN2 = this;
+    n_pCanHandle = &hcan2;
+  }
+  #endif
 
-  _portNumber = portNumber;
+  _canPort = canPort;
+  _pins = pins;
 }
 
 /* Init and start CAN */
-void stm32Can::begin( bool UseAltPins ) {
-    init( n_pCanHandle, UseAltPins );
+void STM32_CAN::begin() {
+    init( n_pCanHandle );
 }
 
 /* Init and start CAN */
-void stm32Can::init( CAN_HandleTypeDef* CanHandle, bool UseAltPins ) {
+void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
 
   /* exit if CAN already is active */
   if ( _canIsActive ) return;
@@ -59,8 +38,8 @@ void stm32Can::init( CAN_HandleTypeDef* CanHandle, bool UseAltPins ) {
   GPIO_InitTypeDef GPIO_InitStruct;
   
   DEBUG(Serial.begin(115200));
-  DEBUG(Serial.println("stm32Can:Begin"));
-  if ( _portNumber == 1 ) {
+  DEBUG(Serial.println("STM32_CAN:Begin"));
+  if ( _canPort == CAN1 ) {
   DEBUG(Serial.println("CAN1"));
   }
   
@@ -68,16 +47,16 @@ void stm32Can::init( CAN_HandleTypeDef* CanHandle, bool UseAltPins ) {
   
   /* Configure CAN **************************************************/
   /* Struct init*/
-  if ( _portNumber == 1 )
+  if ( _canPort == CAN1 )
   {
     __HAL_RCC_CAN1_CLK_ENABLE();
   
     /* Enable GPIO clock */
     __HAL_RCC_GPIOB_CLK_ENABLE();
     
-    if(UseAltPins) {
+    if (_pins == ALT) {
       /* Enable AFIO clock and remap CAN PINs to PB_8 and PB_9*/
-	  #if defined(STM32F1xx)
+      #if defined(STM32F1xx)
       __HAL_RCC_AFIO_CLK_ENABLE();
       __HAL_AFIO_REMAP_CAN1_2();
       #endif
@@ -91,10 +70,10 @@ void stm32Can::init( CAN_HandleTypeDef* CanHandle, bool UseAltPins ) {
       GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     } 
-    else {
-	  #if defined(STM32F1xx)
+     if (_pins == DEF) {
+      #if defined(STM32F1xx)
       __HAL_RCC_AFIO_CLK_ENABLE();
-	  #endif
+      #endif
       /* CAN1 RX GPIO pin configuration */
       GPIO_InitStruct.Pin = GPIO_PIN_11;
       GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -108,10 +87,10 @@ void stm32Can::init( CAN_HandleTypeDef* CanHandle, bool UseAltPins ) {
 
     /*##-3- Configure the NVIC #################################################*/
     /* NVIC configuration for CAN1 Reception complete interrupt */
-    HAL_NVIC_SetPriority( CAN1_RX0_IRQn, 4, 0 );
+    HAL_NVIC_SetPriority( CAN1_RX0_IRQn, 15, 0 );
     HAL_NVIC_EnableIRQ( CAN1_RX0_IRQn );
 	/* NVIC configuration for CAN1 Transmission complete interrupt */
-    HAL_NVIC_SetPriority( CAN1_TX_IRQn, 3, 0 );
+    HAL_NVIC_SetPriority( CAN1_TX_IRQn, 15, 0 );
     HAL_NVIC_EnableIRQ( CAN1_TX_IRQn );
     
     CanHandle->Instance = CAN1;
@@ -129,7 +108,7 @@ void stm32Can::init( CAN_HandleTypeDef* CanHandle, bool UseAltPins ) {
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
     #endif
-    if(UseAltPins) {
+     if (_pins == ALT) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
       /**CAN2 GPIO Configuration    
       PB5     ------> CAN2_RX
@@ -142,7 +121,7 @@ void stm32Can::init( CAN_HandleTypeDef* CanHandle, bool UseAltPins ) {
       GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
       HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     } 
-    else {
+    if (_pins == DEF) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
       /**CAN2 GPIO Configuration    
       PB12     ------> CAN2_RX
@@ -177,21 +156,163 @@ void stm32Can::init( CAN_HandleTypeDef* CanHandle, bool UseAltPins ) {
   CanHandle->Init.Mode = CAN_MODE_NORMAL;
 }
 
-void stm32Can::setBaudRate( uint32_t baudrate ) {
+void STM32_CAN::setBaudRate( uint32_t baud ) {
 
-  CAN_FilterTypeDef sFilterConfig;
   /* Calculate and set baudrate */
-  calculateBaudrate( n_pCanHandle, baudrate );
+  calculateBaudrate( n_pCanHandle, baud );
 
   /*Initializes CAN */
   HAL_CAN_Init( n_pCanHandle );
+  
+  initializeFilters();
 
-  /* CAN filter init */
-   if ( _portNumber == 1 ) {
-	sFilterConfig.FilterBank = 0; // Can1 0 to 13
-   } else {
-	sFilterConfig.FilterBank = 14; // Can2 14 to 27
-   }
+  /* Start the CAN peripheral */
+  if (HAL_CAN_Start( n_pCanHandle ) != HAL_OK)
+  {
+    /* Start Error */
+    //Error_Handler();
+    DEBUG(Serial.println("STM32_CAN - error starting"));
+  }
+
+  /* Activate CAN RX notification */
+  if (HAL_CAN_ActivateNotification( n_pCanHandle, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
+  {
+    /* Notification Error */
+    //Error_Handler();
+    DEBUG(Serial.println("STM32_CAN - error activating int"));
+  }
+  /* Activate CAN TX notification */
+  if (HAL_CAN_ActivateNotification( n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK)
+  {
+    /* Notification Error */
+    //Error_Handler();
+    DEBUG(Serial.println("STM32_CAN - error activating TX int"));
+  }
+  DEBUG(Serial.println("STM32_CAN - CAN startet")); 
+}
+
+bool STM32_CAN::write(CAN_message_t &CAN_tx_msg) {
+  bool ret = true;
+  uint32_t TxMailbox;
+  CAN_TxHeaderTypeDef TxHeader;
+ 
+  __HAL_CAN_DISABLE_IT(n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY);
+
+  if ( CAN_tx_msg.flags.extended == 1 ) // Extended ID when CAN_tx_msg.flags.extended is 1
+  {
+	  TxHeader.ExtId = CAN_tx_msg.id;
+	  TxHeader.IDE   = CAN_ID_EXT;
+  }
+  else // Standard ID otherwise
+  {
+	  TxHeader.StdId = CAN_tx_msg.id;
+	  TxHeader.IDE   = CAN_ID_STD;
+  }
+  
+  TxHeader.RTR   = CAN_RTR_DATA;
+  TxHeader.DLC   = CAN_tx_msg.len;
+  TxHeader.TransmitGlobalTime = DISABLE;
+
+  if ( _canPort == CAN1 )
+    {
+      if( HAL_CAN_AddTxMessage( n_pCanHandle, &TxHeader, CAN_tx_msg.buf, &TxMailbox) != HAL_OK ) {
+        if( _CAN1->addToRingBuffer(_CAN1->txRing, CAN_tx_msg)==false ) {
+          DEBUG(Serial.println("TX full"));
+          ret= false;; // no more room
+        }
+      }
+    }
+#ifdef CAN2  
+  else
+    {
+      if( HAL_CAN_AddTxMessage( n_pCanHandle, &TxHeader, CAN_tx_msg.buf, &TxMailbox) != HAL_OK ) {
+        if( _CAN2->addToRingBuffer(_CAN2->txRing, CAN_tx_msg)==false ) {
+          DEBUG(Serial.println("TX full"));
+          ret= false;; // no more room
+        }
+      }
+    }
+#endif
+  __HAL_CAN_ENABLE_IT(n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY);
+  return ret;
+}
+
+bool STM32_CAN::read(CAN_message_t &CAN_rx_msg) {
+  bool ret;
+  __HAL_CAN_DISABLE_IT( n_pCanHandle, CAN_IT_RX_FIFO0_MSG_PENDING ); 
+  ret = removeFromRingBuffer(rxRing, CAN_rx_msg);
+  __HAL_CAN_ENABLE_IT( n_pCanHandle, CAN_IT_RX_FIFO0_MSG_PENDING ); 
+  return ret;
+}
+
+bool STM32_CAN::setFilter( uint8_t bank_num, uint32_t filter_id, uint32_t mask, uint32_t filter_mode )
+{
+	CAN_FilterTypeDef sFilterConfig;
+
+	sFilterConfig.FilterBank = bank_num;
+	sFilterConfig.FilterMode = filter_mode;
+	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+	sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	sFilterConfig.FilterActivation = ENABLE;
+
+	if ( filter_id <= 0x7FF ) {
+      // Standard ID
+      sFilterConfig.FilterIdHigh = (uint16_t) (filter_id << 5);
+      sFilterConfig.FilterIdLow = 0;
+      sFilterConfig.FilterMaskIdHigh = (uint16_t) (mask << 5);
+      sFilterConfig.FilterMaskIdLow = CAN_ID_EXT;
+	}
+    else {
+      // Extended ID
+      sFilterConfig.FilterIdLow = (uint16_t) (filter_id << 3);
+      sFilterConfig.FilterIdLow |= CAN_ID_EXT;
+      sFilterConfig.FilterIdHigh = (uint16_t) (filter_id >> 13);
+      sFilterConfig.FilterMaskIdLow = (uint16_t) (mask << 3);
+      sFilterConfig.FilterMaskIdLow |= CAN_ID_EXT;
+      sFilterConfig.FilterMaskIdHigh = (uint16_t) (mask >> 13);
+	}
+ 
+	// Enable filter
+	if (HAL_CAN_ConfigFilter( n_pCanHandle, &sFilterConfig ) != HAL_OK)
+	{
+		/* Filter configuration Error */
+		DEBUG(Serial.println("STM32_CAN - error configuring filter"));
+
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+bool STM32_CAN::setMBFilterProcessing( CAN_BANK bank_num, uint32_t filter_id, uint32_t mask )
+{
+  // just convert the MB number enum to bank number.
+  return setFilter( uint8_t(bank_num), filter_id, mask );
+}
+
+bool STM32_CAN::setMBFilter( CAN_BANK bank_num, uint32_t id1 )
+{
+  // by setting the mask to 0x1FFFFFFF we only filter the ID set as Filter ID.
+  return setFilter( uint8_t(bank_num), id1, 0x1FFFFFFF );
+}
+
+bool STM32_CAN::setMBFilter(CAN_BANK bank_num, uint32_t id1, uint32_t id2)
+{
+  // if we set the filter mode as IDLIST, the mask becomes filter ID too. So we can filter two totally independent IDs in same bank.
+  return setFilter( uint8_t(bank_num), id1, id2, CAN_FILTERMODE_IDLIST );
+}
+
+void STM32_CAN::initializeFilters()
+{
+  CAN_FilterTypeDef sFilterConfig;
+  if ( _canPort == CAN1 ) {
+    sFilterConfig.FilterBank = 0; // Can1 0 to 13
+  } 
+  else {
+    sFilterConfig.FilterBank = 14; // Can2 14 to 27
+  }
   sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
   sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
   sFilterConfig.FilterIdHigh = 0x0000;
@@ -206,186 +327,11 @@ void stm32Can::setBaudRate( uint32_t baudrate ) {
   {
     /* Filter configuration Error */
     //Error_Handler();
-    DEBUG(Serial.println("stm32Can - error configuring filter"));
+    DEBUG(Serial.println("STM32_CAN - error configuring filter"));
   }
-
-  /* Start the CAN peripheral */
-  if (HAL_CAN_Start( n_pCanHandle ) != HAL_OK)
-  {
-    /* Start Error */
-    //Error_Handler();
-    DEBUG(Serial.println("stm32Can - error starting"));
-  }
-
-  /* Activate CAN RX notification */
-  if (HAL_CAN_ActivateNotification( n_pCanHandle, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
-  {
-    /* Notification Error */
-    //Error_Handler();
-    DEBUG(Serial.println("stm32Can - error activating int"));
-  }
-  /* Activate CAN TX notification */
-  if (HAL_CAN_ActivateNotification( n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK)
-  {
-    /* Notification Error */
-    //Error_Handler();
-    DEBUG(Serial.println("stm32Can - error activating TX int"));
-  }
-  DEBUG(Serial.println("stm32Can - CAN startet")); 
 }
 
-bool stm32Can::write(CAN_message_t &msg, bool wait_sent) {
-  bool ret = true;
-  uint32_t TxMailbox;
-  CAN_TxHeaderTypeDef TxHeader;
- 
-  __HAL_CAN_DISABLE_IT(n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY);
-
-  if ( msg.flags.extended == 1 ) // Extended ID when msg.flags.extended is 1
-  {
-	  TxHeader.ExtId = msg.id;
-	  TxHeader.IDE   = CAN_ID_EXT;
-  }
-  else // Standard ID otherwise
-  {
-	  TxHeader.StdId = msg.id;
-	  TxHeader.IDE   = CAN_ID_STD;
-  }
-  
-  TxHeader.RTR   = CAN_RTR_DATA;
-  TxHeader.DLC   = msg.len;
-  TxHeader.TransmitGlobalTime = DISABLE;
-
-//  if ( wait_sent ) {
-//      /* Start the Transmission process */
-//     if ( HAL_CAN_AddTxMessage( n_pCanHandle, &TxHeader, msg.buf, &TxMailbox) != HAL_OK )
-//      {
-//        /* Transmission request Error */
-//        ret = false;
-//      }
-//  }
-//  else
-//  {
-//    uint8_t prio = (uint8_t) ((msg.id >> 26) & 0x7);
-    if( HAL_CAN_AddTxMessage( n_pCanHandle, &TxHeader, msg.buf, &TxMailbox) != HAL_OK ) {
-      if( Can1.addToRingBuffer(Can1.txRing, msg)==false ) {
-        DEBUG(Serial.println("TX full"));
-        ret= false;; // no more room
-      }
-    }
-//  }
-  __HAL_CAN_ENABLE_IT(n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY);
-  return ret;
-}
-
-bool stm32Can::read(CAN_message_t &msg) {
-  bool ret;
-  __HAL_CAN_DISABLE_IT( n_pCanHandle, CAN_IT_RX_FIFO0_MSG_PENDING ); 
-  ret = removeFromRingBuffer(rxRing, msg);
-  __HAL_CAN_ENABLE_IT( n_pCanHandle, CAN_IT_RX_FIFO0_MSG_PENDING ); 
-  return ret;
-}
-
-bool stm32Can::readdebug(CAN_message_t &msg) {
-  bool ret;
-  CAN_RxHeaderTypeDef   RxHeader;
-
-  /* For debug usage - this can be used to read a message if interupt not is working */
-  if (HAL_CAN_GetRxMessage( &hcan1, CAN_RX_FIFO0, &RxHeader, msg.buf ) == HAL_OK)
-  {
-    if ( RxHeader.IDE == CAN_ID_STD )
-	{
-		msg.id = RxHeader.StdId;
-		msg.flags.extended = 0;
-	}
-	else
-	{
-		msg.id = RxHeader.ExtId;
-		msg.flags.extended = 1;
-	}
-    msg.flags.remote = RxHeader.RTR;
-    msg.priority     = RxHeader.FilterMatchIndex;
-    msg.timestamp    = RxHeader.Timestamp;
-    msg.len          = RxHeader.DLC;
-    ret = true;
-  }
-  else
-  {
-    ret = false;
-  }
-
-  uint32_t test;
-
-  /* print the timing parameters */
-  DEBUG(Serial.println( "Debug - timing settings" ));
-    
-  test = (uint32_t) n_pCanHandle->Init.SyncJumpWidth;
-  DEBUG(Serial.print( "SyncJumpWidth: " ));
-  DEBUG(Serial.println( test ));
-    
-  test = (uint32_t) n_pCanHandle->Init.TimeSeg1;
-  DEBUG(Serial.print( "TimeSeg1: " ));
-  DEBUG(Serial.println( test ));
-    
-  test = (uint32_t) n_pCanHandle->Init.TimeSeg2;
-  DEBUG(Serial.print( "TimeSeg2: " ));
-  DEBUG(Serial.println( test ));
-    
-  test = (uint32_t) n_pCanHandle->Init.Prescaler;
-  DEBUG(Serial.print( "Prescaler: " ));
-  DEBUG(Serial.println( test ));
-      
-  return ret;
-}
-
-uint32_t stm32Can::available( void ) 
-{ 
-  return ringBufferCount(rxRing); 
-};
-
-bool stm32Can::setFilter( uint32_t FilterID, uint32_t FilterMask, uint8_t FilterBank, bool IDStdOrExt )
-{	
-	CAN_FilterTypeDef sFilterConfig;
-	
-	// Define filter
-	sFilterConfig.FilterBank = FilterBank;
-	sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
-	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
-	sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-	sFilterConfig.FilterActivation = ENABLE;
-
-	switch ( IDStdOrExt ) {
-		case IDStd: // Standard
-			sFilterConfig.FilterIdHigh = (uint16_t) (FilterID << 5);
-			sFilterConfig.FilterIdLow = 0;
-			sFilterConfig.FilterMaskIdHigh = (uint16_t) (FilterMask << 5);
-			sFilterConfig.FilterMaskIdLow = CAN_ID_EXT;
-			break;
-		case IDExt: // Extended
-			sFilterConfig.FilterIdLow = (uint16_t) (FilterID << 3);
-			sFilterConfig.FilterIdLow |= CAN_ID_EXT;
-			sFilterConfig.FilterIdHigh = (uint16_t) (FilterID >> 13);
-			sFilterConfig.FilterMaskIdLow = (uint16_t) (FilterMask << 3);
-			sFilterConfig.FilterMaskIdLow |= CAN_ID_EXT;
-			sFilterConfig.FilterMaskIdHigh = (uint16_t) (FilterMask >> 13);
-			break;
-	}
- 
-	// Enable filter
-	if (HAL_CAN_ConfigFilter( n_pCanHandle, &sFilterConfig ) != HAL_OK)
-	{
-		/* Filter configuration Error */
-		DEBUG(Serial.println("stm32Can - error configuring filter"));
-
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-void stm32Can::initializeBuffers() {
+void STM32_CAN::initializeBuffers() {
     if( isInitialized() )
       return;
   
@@ -401,7 +347,7 @@ void stm32Can::initializeBuffers() {
     initRingBuffer(rxRing, rx_buffer, sizeRxBuffer);
 }
 
-void stm32Can::initRingBuffer(RingbufferTypeDef &ring, volatile CAN_message_t *buffer, uint32_t size)
+void STM32_CAN::initRingBuffer(RingbufferTypeDef &ring, volatile CAN_message_t *buffer, uint32_t size)
 {
     ring.buffer = buffer;
     ring.size = size;
@@ -409,7 +355,7 @@ void stm32Can::initRingBuffer(RingbufferTypeDef &ring, volatile CAN_message_t *b
     ring.tail = 0;
 }
 
-bool stm32Can::addToRingBuffer (RingbufferTypeDef &ring, const CAN_message_t &msg)
+bool STM32_CAN::addToRingBuffer (RingbufferTypeDef &ring, const CAN_message_t &msg)
 {
     uint16_t nextEntry;
 
@@ -442,7 +388,7 @@ bool stm32Can::addToRingBuffer (RingbufferTypeDef &ring, const CAN_message_t &ms
  *
  */
 
-bool stm32Can::removeFromRingBuffer(RingbufferTypeDef &ring, CAN_message_t &msg)
+bool STM32_CAN::removeFromRingBuffer(RingbufferTypeDef &ring, CAN_message_t &msg)
 {
 
     /* check if the ring buffer has data available */
@@ -471,7 +417,7 @@ bool stm32Can::removeFromRingBuffer(RingbufferTypeDef &ring, CAN_message_t &msg)
  *
  */
 
-bool stm32Can::isRingBufferEmpty(RingbufferTypeDef &ring)
+bool STM32_CAN::isRingBufferEmpty(RingbufferTypeDef &ring)
 {
     if(ring.head == ring.tail) {
         return(true);
@@ -489,7 +435,7 @@ bool stm32Can::isRingBufferEmpty(RingbufferTypeDef &ring)
  *
  */
 
-uint32_t stm32Can::ringBufferCount(RingbufferTypeDef &ring)
+uint32_t STM32_CAN::ringBufferCount(RingbufferTypeDef &ring)
 {
     int32_t entries;
 
@@ -502,7 +448,7 @@ uint32_t stm32Can::ringBufferCount(RingbufferTypeDef &ring)
     return((uint32_t)entries);
 }
 
-void stm32Can::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baudrate )
+void STM32_CAN::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baud )
 {
   int sjw = 1;
   int bs1 = 1;
@@ -527,7 +473,7 @@ void stm32Can::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baudrate )
         {
           int calcBaudrate = (int)(frequency / (prescaler * (sjw + bs1 + bs2)));
           
-          if (calcBaudrate == baudrate)
+          if (calcBaudrate == baud)
           {
             if (sjw == 1)
               _SyncJumpWidth = CAN_SJW_1TQ;
@@ -611,7 +557,7 @@ void stm32Can::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baudrate )
   CanHandle->Init.Prescaler = _Prescaler;
 }
 
-uint32_t stm32Can::getAPB1Clock()
+uint32_t STM32_CAN::getAPB1Clock()
 {
   RCC_ClkInitTypeDef clkInit;
   uint32_t flashLatency;
@@ -635,7 +581,7 @@ uint32_t stm32Can::getAPB1Clock()
   return apb1Clock;
 }
 
-void stm32Can::enableMBInterrupts()
+void STM32_CAN::enableMBInterrupts()
 {
     if (n_pCanHandle->Instance == CAN1) 
     {
@@ -649,7 +595,7 @@ void stm32Can::enableMBInterrupts()
 #endif
 }
 
-void stm32Can::disableMBInterrupts()
+void STM32_CAN::disableMBInterrupts()
 {
     if (n_pCanHandle->Instance == CAN1) 
     {
@@ -670,7 +616,7 @@ extern "C" void HAL_CAN_TxMailbox0CompleteCallback( CAN_HandleTypeDef *CanHandle
   uint32_t TxMailbox;
   CAN_message_t txmsg;
   CAN_TxHeaderTypeDef TxHeader;
-  if ( Can1.removeFromRingBuffer(Can1.txRing, txmsg) )
+  if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
   {
     if ( txmsg.flags.extended == 1 ) // Extended ID when msg.flags.extended is 1
     {
@@ -697,7 +643,7 @@ extern "C" void HAL_CAN_TxMailbox1CompleteCallback( CAN_HandleTypeDef *CanHandle
   uint32_t TxMailbox;
   CAN_message_t txmsg;
   CAN_TxHeaderTypeDef TxHeader;
-  if ( Can1.removeFromRingBuffer(Can1.txRing, txmsg) )
+  if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
   {
     if ( txmsg.flags.extended == 1 ) // Extended ID when msg.flags.extended is 1
     {
@@ -724,7 +670,7 @@ extern "C" void HAL_CAN_TxMailbox2CompleteCallback( CAN_HandleTypeDef *CanHandle
   uint32_t TxMailbox;
   CAN_message_t txmsg;
   CAN_TxHeaderTypeDef TxHeader;
-  if ( Can1.removeFromRingBuffer(Can1.txRing, txmsg) )
+  if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
   {
     if ( txmsg.flags.extended == 1 ) // Extended ID when msg.flags.extended is 1
     {
@@ -771,29 +717,31 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback( CAN_HandleTypeDef *CanHandle 
 	}
 	
     rxmsg.flags.remote = RxHeader.RTR;
-    rxmsg.priority     = RxHeader.FilterMatchIndex;
+    rxmsg.mb           = RxHeader.FilterMatchIndex;
     rxmsg.timestamp    = RxHeader.Timestamp;
     rxmsg.len          = RxHeader.DLC;
 
     if (CanHandle->Instance == CAN1) 
     {
-      Can1.addToRingBuffer(Can1.rxRing, rxmsg);
+       rxmsg.bus = 1;
+      _CAN1->addToRingBuffer(_CAN1->rxRing, rxmsg);
     }
 #ifdef CAN2
     else
     {
-      Can2.addToRingBuffer(Can2.rxRing, rxmsg);
+       rxmsg.bus = 2;
+      _CAN2->addToRingBuffer(_CAN2->rxRing, rxmsg);
     }
 #endif
   }
 }
 
-void stm32Can::enableLoopBack( bool yes ) {
+void STM32_CAN::enableLoopBack( bool yes ) {
 if ( yes ) { n_pCanHandle->Init.Mode = CAN_MODE_LOOPBACK; }	
 else { n_pCanHandle->Init.Mode = CAN_MODE_NORMAL; }
 }
 
-void stm32Can::enableFIFO(bool status)
+void STM32_CAN::enableFIFO(bool status)
 {
   //Nothing to do here. The FIFO is on by default.
 }

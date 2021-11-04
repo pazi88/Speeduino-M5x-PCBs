@@ -33,7 +33,7 @@ static CAN_message_t CAN_msg_CLT_TPS;
 static CAN_message_t CAN_msg_MPG_CEL;
 static CAN_message_t CAN_inMsg;
 
-//STM32_CAN Can1 (_CAN1,DEF);
+STM32_CAN Can1( CAN1, DEF );
 
 // This struct gathers data read from speeduino
 struct statuses {
@@ -152,11 +152,8 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
   case 0: //CAN_LEVEL
     CAN_msg_CLT_TPS.buf[0]= 0x11;
     break;
-  case 1: //CAN_LEVEL
-    //nothing
-    break;
-  case 2: //OBD_STEUER
-    if (currentStatus.RPM << 400)
+  case 1: //OBD_STEUER
+    if (currentStatus.RPM < 400)
     {
       CAN_msg_CLT_TPS.buf[0]= 0x80;
     }
@@ -165,19 +162,15 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
       CAN_msg_CLT_TPS.buf[0]= 0x86;
     }
     break;
-  case 3: //OBD_STEUER
-    //nothing
-    break;
-  case 4: //MD_NORM
+  case 2: //MD_NORM
     CAN_msg_CLT_TPS.buf[0]= 0xD9;
-    break;
-  case 5: //MD_NORM
-    //nothing
     break;
   default:
     CAN_msg_CLT_TPS.buf[0]= 0x11;
     break;
 }
+  Can1.write(CAN_msg_CLT_TPS);
+  Can1.write(CAN_msg_CLT_TPS);
   Can1.write(CAN_msg_CLT_TPS);
 
   // Send fuel consumption and error lights
@@ -205,8 +198,10 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
   CAN_msg_MPG_CEL.buf[2]= pwLSB;  // MSB Fuel Consumption
   CAN_msg_MPG_CEL.buf[3]= tempLight ;  // Overheat light
   Can1.write(CAN_msg_MPG_CEL);
+  Can1.write(CAN_msg_MPG_CEL);
+  Can1.write(CAN_msg_MPG_CEL);
   MSGcounter++;
-  if (MSGcounter >= 6)
+  if (MSGcounter >= 3)
   {
     MSGcounter = 0;
   }
@@ -221,8 +216,12 @@ void setup(){
   Serial2.setTimeout(ISO_TIMEOUT);
   #endif
   
-  Can1.begin( false);
+  Can1.begin();
   Can1.setBaudRate(500000);
+  Can1.setMBFilterProcessing( MB0, 0x153, 0x1FFFFFFF );
+  Can1.setMBFilterProcessing( MB1, 0x613, 0x1FFFFFFF );
+  Can1.setMBFilterProcessing( MB2, 0x615, 0x1FFFFFFF );
+  Can1.setMBFilterProcessing( MB3, 0x1F0, 0x1FFFFFFF );
 
   CAN_msg_RPM.len = 8; // 8 bytes in can message
   CAN_msg_CLT_TPS.len = 7;
@@ -275,7 +274,7 @@ void setup(){
   MSGcounter = 0;
   ascMSG = false;
 
-// setup hardwaretimer to send data for instrument cluster in 100Hz pace
+// setup hardwaretimer to send data for instrument cluster in 50Hz pace
 #if defined(TIM1)
   TIM_TypeDef *Instance = TIM1;
 #else
@@ -439,6 +438,7 @@ void readCanMessage() {
     break;
     case  0x153: 
       ascMSG = true;
+      Serial.print ("filter mb "); Serial.println (CAN_inMsg.mb);
       VSS = ((CAN_inMsg.buf[2] << 8) | (CAN_inMsg.buf[1]));
       // conversion (speeduino doesn't have internal conversion for CAN data, so we do it here)
       VSS = VSS - 252;
