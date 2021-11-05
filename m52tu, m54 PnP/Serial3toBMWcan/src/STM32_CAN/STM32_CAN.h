@@ -91,7 +91,7 @@ class STM32_CAN {
 
     void begin();
     void setBaudRate(uint32_t baud);
-    bool write( CAN_message_t &CAN_tx_msg );
+    bool write( CAN_message_t &CAN_tx_msg, bool sendMB = false );
     bool read( CAN_message_t &CAN_rx_msg );
 	// Manually set STM32 filter bank parameters
     bool setFilter(uint8_t bank_num, uint32_t filter_id, uint32_t mask, uint32_t filter_mode = CAN_FILTERMODE_IDMASK);

@@ -94,14 +94,12 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
   {
      /* USER CODE END CAN2_MspInit 0 */
     /* CAN2 clock enable */
-	#if defined(STM32F1xx)
     __HAL_RCC_CAN2_CLK_ENABLE();
 
     HAL_RCC_CAN1_CLK_ENABLED++;
     if(HAL_RCC_CAN1_CLK_ENABLED==1){
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
-    #endif
      if (_pins == ALT) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
       /**CAN2 GPIO Configuration    
@@ -131,10 +129,10 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
 
     /*##-3- Configure the NVIC #################################################*/
     /* NVIC configuration for CAN2 Reception complete interrupt */
-    HAL_NVIC_SetPriority( CAN2_RX0_IRQn, 4, 0 );
+    HAL_NVIC_SetPriority( CAN2_RX0_IRQn, 15, 0 );
     HAL_NVIC_EnableIRQ( CAN2_RX0_IRQn );
 	/* NVIC configuration for CAN2 Transmission complete interrupt */
-    HAL_NVIC_SetPriority( CAN2_TX_IRQn, 4, 0 );
+    HAL_NVIC_SetPriority( CAN2_TX_IRQn, 15, 0 );
     HAL_NVIC_EnableIRQ( CAN2_TX_IRQn );
     
     CanHandle->Instance = CAN2;
@@ -170,7 +168,7 @@ void STM32_CAN::setBaudRate( uint32_t baud ) {
   HAL_CAN_ActivateNotification( n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY);
 }
 
-bool STM32_CAN::write(CAN_message_t &CAN_tx_msg) {
+bool STM32_CAN::write(CAN_message_t &CAN_tx_msg, bool sendMB ) {
   bool ret = true;
   uint32_t TxMailbox;
   CAN_TxHeaderTypeDef TxHeader;
@@ -192,13 +190,18 @@ bool STM32_CAN::write(CAN_message_t &CAN_tx_msg) {
   TxHeader.DLC   = CAN_tx_msg.len;
   TxHeader.TransmitGlobalTime = DISABLE;
 
-
   if( HAL_CAN_AddTxMessage( n_pCanHandle, &TxHeader, CAN_tx_msg.buf, &TxMailbox) != HAL_OK )
   {
-    if( addToRingBuffer( txRing, CAN_tx_msg ) == false )
+    /* in normal situation we add up the message to TX ring buffer, if there is no free TX mailbox. But the TX mailbox interrupt is using this same function
+	to move the messages from ring buffer to empty TX mailboxes, so for that use case, there is this check */
+    if( sendMB != true ) 
 	{
-      ret= false; // no more room
+      if( addToRingBuffer( txRing, CAN_tx_msg ) == false )
+	  {
+        ret = false; // no more room
+      }
     }
+	else { ret = false; }
   }
   __HAL_CAN_ENABLE_IT(n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY);
   return ret;
@@ -548,6 +551,16 @@ void STM32_CAN::disableMBInterrupts()
 #endif
 }
 
+void STM32_CAN::enableLoopBack( bool yes ) {
+  if ( yes ) { n_pCanHandle->Init.Mode = CAN_MODE_LOOPBACK; }
+  else { n_pCanHandle->Init.Mode = CAN_MODE_NORMAL; }
+}
+
+void STM32_CAN::enableFIFO(bool status)
+{
+  //Nothing to do here. The FIFO is on by default.
+}
+
 /* Interupt functions 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -555,80 +568,68 @@ void STM32_CAN::disableMBInterrupts()
 // There is 3 TX mailboxes. Each one has own transmit complete callback function, that we use to pull next message from TX ringbuffer to be sent out in TX mailbox.
 extern "C" void HAL_CAN_TxMailbox0CompleteCallback( CAN_HandleTypeDef *CanHandle )
 {
-  uint32_t TxMailbox;
   CAN_message_t txmsg;
-  CAN_TxHeaderTypeDef TxHeader;
-  if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
+  // use correct CAN instance
+  if (CanHandle->Instance == CAN1) 
   {
-    if ( txmsg.flags.extended == 1 ) // Extended ID when msg.flags.extended is 1
+    if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
     {
-	    TxHeader.ExtId = txmsg.id;
-	    TxHeader.IDE   = CAN_ID_EXT;
+      _CAN1->write(txmsg, true );
     }
-    else // Standard ID otherwise
-    {
-	    TxHeader.StdId = txmsg.id;
-	    TxHeader.IDE   = CAN_ID_STD;
-    }
-  
-    TxHeader.RTR   = CAN_RTR_DATA;
-    TxHeader.DLC   = txmsg.len;
-    TxHeader.TransmitGlobalTime = DISABLE;
-
-    HAL_CAN_AddTxMessage(CanHandle, &TxHeader, txmsg.buf, &TxMailbox);	
   }
+#ifdef CAN2
+  else
+  {
+    if ( _CAN2->removeFromRingBuffer(_CAN2->txRing, txmsg) )
+    {
+      _CAN2->write(txmsg, true );
+    }
+  }
+#endif
 }
 
 extern "C" void HAL_CAN_TxMailbox1CompleteCallback( CAN_HandleTypeDef *CanHandle )
 {
-  uint32_t TxMailbox;
   CAN_message_t txmsg;
-  CAN_TxHeaderTypeDef TxHeader;
-  if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
+  // use correct CAN instance
+  if (CanHandle->Instance == CAN1) 
   {
-    if ( txmsg.flags.extended == 1 ) // Extended ID when msg.flags.extended is 1
+    if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
     {
-	    TxHeader.ExtId = txmsg.id;
-	    TxHeader.IDE   = CAN_ID_EXT;
+      _CAN1->write(txmsg, true );
     }
-    else // Standard ID otherwise
-    {
-	    TxHeader.StdId = txmsg.id;
-	    TxHeader.IDE   = CAN_ID_STD;
-    }
-  
-    TxHeader.RTR   = CAN_RTR_DATA;
-    TxHeader.DLC   = txmsg.len;
-    TxHeader.TransmitGlobalTime = DISABLE;
-
-    HAL_CAN_AddTxMessage(CanHandle, &TxHeader, txmsg.buf, &TxMailbox);	
   }
+#ifdef CAN2
+  else
+  {
+    if ( _CAN2->removeFromRingBuffer(_CAN2->txRing, txmsg) )
+    {
+      _CAN2->write(txmsg, true );
+    }
+  }
+#endif
 }
 
 extern "C" void HAL_CAN_TxMailbox2CompleteCallback( CAN_HandleTypeDef *CanHandle )
 {
-  uint32_t TxMailbox;
   CAN_message_t txmsg;
-  CAN_TxHeaderTypeDef TxHeader;
-  if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
+  // use correct CAN instance
+  if (CanHandle->Instance == CAN1) 
   {
-    if ( txmsg.flags.extended == 1 ) // Extended ID when msg.flags.extended is 1
+    if ( _CAN1->removeFromRingBuffer(_CAN1->txRing, txmsg) )
     {
-	    TxHeader.ExtId = txmsg.id;
-	    TxHeader.IDE   = CAN_ID_EXT;
+      _CAN1->write(txmsg, true );
     }
-    else // Standard ID otherwise
-    {
-	    TxHeader.StdId = txmsg.id;
-	    TxHeader.IDE   = CAN_ID_STD;
-    }
-  
-    TxHeader.RTR   = CAN_RTR_DATA;
-    TxHeader.DLC   = txmsg.len;
-    TxHeader.TransmitGlobalTime = DISABLE;
-
-    HAL_CAN_AddTxMessage(CanHandle, &TxHeader, txmsg.buf, &TxMailbox);
   }
+#ifdef CAN2
+  else
+  {
+    if ( _CAN2->removeFromRingBuffer(_CAN2->txRing, txmsg) )
+    {
+      _CAN2->write(txmsg, true );
+    }
+  }
+#endif
 }
 
 // This is called by RX0_IRQHandler when there is message at RX FIFO0 buffer
@@ -670,16 +671,6 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback( CAN_HandleTypeDef *CanHandle 
     }
 #endif
   }
-}
-
-void STM32_CAN::enableLoopBack( bool yes ) {
-  if ( yes ) { n_pCanHandle->Init.Mode = CAN_MODE_LOOPBACK; }
-  else { n_pCanHandle->Init.Mode = CAN_MODE_NORMAL; }
-}
-
-void STM32_CAN::enableFIFO(bool status)
-{
-  //Nothing to do here. The FIFO is on by default.
 }
 
 // RX IRQ handlers

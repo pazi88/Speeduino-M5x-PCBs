@@ -437,7 +437,6 @@ void readCanMessage() {
     break;
     case  0x153: 
       ascMSG = true;
-      Serial.print ("filter mb "); Serial.println (CAN_inMsg.mb);
       VSS = ((CAN_inMsg.buf[2] << 8) | (CAN_inMsg.buf[1]));
       // conversion (speeduino doesn't have internal conversion for CAN data, so we do it here)
       VSS = VSS - 252;
