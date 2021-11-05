@@ -317,7 +317,6 @@ void sendReply(uint8_t data[]) {
   uint8_t offset = 3; // payload starts after 3 initial bytes
 
   // Here is where payload starts:
-  float tempvalue;
   uint16_t valueToSend;
   
   // RPM
@@ -713,7 +712,6 @@ void loop() {
     // commands are 4 bytes long, so we only start reading RX buffer, when whe have full command there.
     if( (DS2.available() >= 4) && newData ){ // we also want to have new updated data available from speeduino, or it's not worth sending anything to K-line.
       if(DS2.readCommand(data)){  //Read command will ensure it's own length and if checksum is ok.
-        uint8_t len = data[1];
         switch(data[2]) {
           case 0x0B:
             if(data[3] == 0x03) sendReply(data);
