@@ -44,46 +44,68 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
   if ( _canPort == CAN1 )
   {
     __HAL_RCC_CAN1_CLK_ENABLE();
-  
-    /* Enable GPIO clock */
-    __HAL_RCC_GPIOB_CLK_ENABLE();
     
     if (_pins == ALT) {
-      /* Enable AFIO clock and remap CAN PINs to PB_8 and PB_9*/
+      __HAL_RCC_GPIOB_CLK_ENABLE();
       #if defined(STM32F1xx)
-      __HAL_RCC_AFIO_CLK_ENABLE();
       __HAL_AFIO_REMAP_CAN1_2();
-      #endif
-      /* CAN1 RX GPIO pin configuration */
+      __HAL_RCC_AFIO_CLK_ENABLE();
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       GPIO_InitStruct.Pin = GPIO_PIN_8;
       GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
       HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
       GPIO_InitStruct.Pin = GPIO_PIN_9;
+      #else
+      GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
+      GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      #endif
       GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     } 
      if (_pins == DEF) {
+      __HAL_RCC_GPIOA_CLK_ENABLE();
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
       #if defined(STM32F1xx)
       __HAL_RCC_AFIO_CLK_ENABLE();
-      #endif
-      /* CAN1 RX GPIO pin configuration */
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       GPIO_InitStruct.Pin = GPIO_PIN_11;
       GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
       HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
       GPIO_InitStruct.Pin = GPIO_PIN_12;
+      #else
+      GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
+      GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      #endif
       GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    }
+
+     if (_pins == ALT_2) {
+      __HAL_RCC_GPIOD_CLK_ENABLE();
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      #if defined(STM32F1xx)
+      __HAL_RCC_AFIO_CLK_ENABLE();
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+      GPIO_InitStruct.Pin = GPIO_PIN_0;
+      GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+      HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+      GPIO_InitStruct.Pin = GPIO_PIN_1;
+      #else
+      GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
+      GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      #endif
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+      HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
     }
 
     /*##-3- Configure the NVIC #################################################*/
     /* NVIC configuration for CAN1 Reception complete interrupt */
     HAL_NVIC_SetPriority( CAN1_RX0_IRQn, 15, 0 );
     HAL_NVIC_EnableIRQ( CAN1_RX0_IRQn );
-	/* NVIC configuration for CAN1 Transmission complete interrupt */
+    /* NVIC configuration for CAN1 Transmission complete interrupt */
     HAL_NVIC_SetPriority( CAN1_TX_IRQn, 15, 0 );
     HAL_NVIC_EnableIRQ( CAN1_TX_IRQn );
     
@@ -92,14 +114,18 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
 #ifdef CAN2  
   else
   {
-     /* USER CODE END CAN2_MspInit 0 */
+    /* USER CODE END CAN2_MspInit 0 */
     /* CAN2 clock enable */
+    #if defined(STM32F1xx)
     __HAL_RCC_CAN2_CLK_ENABLE();
 
     HAL_RCC_CAN1_CLK_ENABLED++;
     if(HAL_RCC_CAN1_CLK_ENABLED==1){
       __HAL_RCC_CAN1_CLK_ENABLE();
     }
+    #else
+    GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
+    #endif
      if (_pins == ALT) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
       /**CAN2 GPIO Configuration    
@@ -392,8 +418,13 @@ uint32_t STM32_CAN::ringBufferCount(RingbufferTypeDef &ring)
 
 void STM32_CAN::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baud )
 {
+  /* this function calculates the needed Sync Jump Width, Time segments 1 and 2 and prescaler values based on the set baud rate and APB1 clock.
+  This could be done faster if needed by calculating these values beforehand and just using fixed values from table.
+  The function has been optimized to give values that have sample-point between 75-94%. If some other sample-point percentage is needed, this needs to be adjusted.
+  More info about this topic here: http://www.bittiming.can-wiki.info/
+  */
   int sjw = 1;
-  int bs1 = 1;
+  int bs1 = 5; // optimization. bs1 smaller than 5 does give too small sample-point percentages.
   int bs2 = 1;
   int prescaler = 1;
   uint32_t _SyncJumpWidth;
@@ -409,9 +440,9 @@ void STM32_CAN::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baud )
   {
     for (; prescaler <= 1024 && !shouldBrake; )
     {
-      for (; bs2 <= 8 && !shouldBrake; )
+      for (; bs2 <= 3 && !shouldBrake; )  // Time segment 2 can get up to 8, but that causes too small sample-point percentages, so this is limited to 3.
       {
-        for (; bs1 <= 16 && !shouldBrake; )
+        for (; bs1 <= 15 && !shouldBrake; )  // Time segment 1 can get up to 16, but that causes too big sample-point percenages, so this is limited to 15.
         {
           int calcBaudrate = (int)(frequency / (prescaler * (sjw + bs1 + bs2)));
           
@@ -426,13 +457,7 @@ void STM32_CAN::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baud )
             else if (sjw == 4)
               _SyncJumpWidth = CAN_SJW_4TQ;
 
-            if (bs1 == 1)
-              _TimeSeg1 = CAN_BS1_1TQ;
-            else if (bs1 == 2)
-              _TimeSeg1 = CAN_BS1_2TQ;
-            else if (bs1 == 3)
-              _TimeSeg1 = CAN_BS1_3TQ;
-            else if (bs1 == 4)
+            if (bs1 == 4)
               _TimeSeg1 = CAN_BS1_4TQ;
             else if (bs1 == 5)
               _TimeSeg1 = CAN_BS1_5TQ;
@@ -456,17 +481,17 @@ void STM32_CAN::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baud )
               _TimeSeg1 = CAN_BS1_14TQ;
             else if (bs1 == 15)
               _TimeSeg1 = CAN_BS1_15TQ;
-            else if (bs1 == 16)
-              _TimeSeg1 = CAN_BS1_16TQ;
 
             if (bs2 == 1)
               _TimeSeg2 = CAN_BS2_1TQ;
             else if (bs2 == 2)
               _TimeSeg2 = CAN_BS2_2TQ;
             else if (bs2 == 3)
-              _TimeSeg2 = CAN_BS2_2TQ;
+              _TimeSeg2 = CAN_BS2_3TQ;
             else if (bs2 == 4)
-              _TimeSeg2 = CAN_BS2_2TQ;
+              _TimeSeg2 = CAN_BS2_4TQ;
+            else if (bs2 == 5)
+              _TimeSeg2 = CAN_BS2_5TQ;
 
             _Prescaler = prescaler;
 
@@ -476,19 +501,20 @@ void STM32_CAN::calculateBaudrate( CAN_HandleTypeDef *CanHandle, int baud )
         }
         if (!shouldBrake)
         {
+          bs1 = 5;
           bs2++;
         }
       }
       if (!shouldBrake)
       {
-        bs1 = 1;
+        bs1 = 5;
         bs2 = 1;
         prescaler++;
       }
     }
     if (!shouldBrake)
     {
-      bs1 = 1;
+      bs1 = 5;
       sjw++;
     }
   }
