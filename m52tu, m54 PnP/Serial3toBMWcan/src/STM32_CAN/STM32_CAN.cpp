@@ -17,6 +17,12 @@ STM32_CAN::STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins ) {
     n_pCanHandle = &hcan2;
   }
   #endif
+  #ifdef CAN3
+  if ( canPort == CAN3 ) {
+    _CAN3 = this;
+    n_pCanHandle = &hcan3;
+  }
+  #endif
 
   _canPort = canPort;
   _pins = pins;
@@ -164,6 +170,40 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
     HAL_NVIC_EnableIRQ( CAN2_TX_IRQn );
     
     CanHandle->Instance = CAN2;
+  }
+#endif
+
+#ifdef CAN3 
+  else
+  {
+    //CAN3
+    __HAL_RCC_CAN3_CLK_ENABLE();
+    }
+    if (_pins == ALT) {
+      __HAL_RCC_GPIOB_CLK_ENABLE();
+      GPIO_InitStruct.Alternate = GPIO_AF11_CAN3;
+      GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    } 
+    if (_pins == DEF) {
+      __HAL_RCC_GPIOA_CLK_ENABLE();
+      GPIO_InitStruct.Alternate = GPIO_AF11_CAN3;
+      GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_12;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+      HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    }
+
+    // NVIC configuration for CAN3 Reception complete interrupt
+    HAL_NVIC_SetPriority( CAN3_RX0_IRQn, 15, 0 ); // 15 is lowest possible priority
+    HAL_NVIC_EnableIRQ( CAN3_RX0_IRQn );
+    // NVIC configuration for CAN3 Transmission complete interrupt
+    HAL_NVIC_SetPriority( CAN3_TX_IRQn, 15, 0 ); // 15 is lowest possible priority
+    HAL_NVIC_EnableIRQ( CAN3_TX_IRQn );
+    
+    CanHandle->Instance = CAN3;
   }
 #endif
 
@@ -558,9 +598,15 @@ void STM32_CAN::enableMBInterrupts()
       HAL_NVIC_EnableIRQ( CAN1_TX_IRQn );
     }
 #ifdef CAN2
-    else
+    else if (n_pCanHandle->Instance == CAN2) 
     {
       HAL_NVIC_EnableIRQ( CAN2_TX_IRQn );
+    }
+#endif
+#ifdef CAN3
+    else if (n_pCanHandle->Instance == CAN3) 
+    {
+      HAL_NVIC_EnableIRQ( CAN3_TX_IRQn );
     }
 #endif
 }
@@ -572,9 +618,15 @@ void STM32_CAN::disableMBInterrupts()
       HAL_NVIC_DisableIRQ( CAN1_TX_IRQn );
     }
 #ifdef CAN2
-    else
+    else if (n_pCanHandle->Instance == CAN2)
     {
       HAL_NVIC_DisableIRQ( CAN2_TX_IRQn );
+    }
+#endif
+#ifdef CAN3
+    else if (n_pCanHandle->Instance == CAN3)
+    {
+      HAL_NVIC_DisableIRQ( CAN3_TX_IRQn );
     }
 #endif
 }
@@ -606,11 +658,20 @@ extern "C" void HAL_CAN_TxMailbox0CompleteCallback( CAN_HandleTypeDef *CanHandle
     }
   }
 #ifdef CAN2
-  else
+  else if (CanHandle->Instance == CAN2) 
   {
     if ( _CAN2->removeFromRingBuffer(_CAN2->txRing, txmsg) )
     {
       _CAN2->write(txmsg, true );
+    }
+  }
+#endif
+#ifdef CAN3
+  else if (CanHandle->Instance == CAN3) 
+  {
+    if ( _CAN3->removeFromRingBuffer(_CAN3->txRing, txmsg) )
+    {
+      _CAN3->write(txmsg, true );
     }
   }
 #endif
@@ -628,11 +689,20 @@ extern "C" void HAL_CAN_TxMailbox1CompleteCallback( CAN_HandleTypeDef *CanHandle
     }
   }
 #ifdef CAN2
-  else
+  else if (CanHandle->Instance == CAN2) 
   {
     if ( _CAN2->removeFromRingBuffer(_CAN2->txRing, txmsg) )
     {
       _CAN2->write(txmsg, true );
+    }
+  }
+#endif
+#ifdef CAN3
+  else if (CanHandle->Instance == CAN3) 
+  {
+    if ( _CAN3->removeFromRingBuffer(_CAN3->txRing, txmsg) )
+    {
+      _CAN3->write(txmsg, true );
     }
   }
 #endif
@@ -650,11 +720,20 @@ extern "C" void HAL_CAN_TxMailbox2CompleteCallback( CAN_HandleTypeDef *CanHandle
     }
   }
 #ifdef CAN2
-  else
+  else if (CanHandle->Instance == CAN2) 
   {
     if ( _CAN2->removeFromRingBuffer(_CAN2->txRing, txmsg) )
     {
       _CAN2->write(txmsg, true );
+    }
+  }
+#endif
+#ifdef CAN3
+  else if (CanHandle->Instance == CAN3) 
+  {
+    if ( _CAN3->removeFromRingBuffer(_CAN3->txRing, txmsg) )
+    {
+      _CAN3->write(txmsg, true );
     }
   }
 #endif
@@ -692,10 +771,17 @@ extern "C" void HAL_CAN_RxFifo0MsgPendingCallback( CAN_HandleTypeDef *CanHandle 
       _CAN1->addToRingBuffer(_CAN1->rxRing, rxmsg);
     }
 #ifdef CAN2
-    else
+    else if (CanHandle->Instance == CAN2) 
     {
       rxmsg.bus = 2;
       _CAN2->addToRingBuffer(_CAN2->rxRing, rxmsg);
+    }
+#endif
+#ifdef CAN3
+    else if (CanHandle->Instance == CAN3) 
+    {
+      rxmsg.bus = 3;
+      _CAN3->addToRingBuffer(_CAN3->rxRing, rxmsg);
     }
 #endif
   }
@@ -713,6 +799,12 @@ extern "C" void CAN2_RX0_IRQHandler( void )
   HAL_CAN_IRQHandler( &hcan2 );
 }
 #endif
+#ifdef CAN3
+extern "C" void CAN3_RX0_IRQHandler( void )
+{
+  HAL_CAN_IRQHandler( &hcan3 );
+}
+#endif
 
 // TX IRQ handlers
 extern "C" void CAN1_TX_IRQHandler( void )
@@ -724,6 +816,12 @@ extern "C" void CAN1_TX_IRQHandler( void )
 extern "C" void CAN2_TX_IRQHandler( void )
 {
   HAL_CAN_IRQHandler( &hcan2 );
+}
+#endif
+#ifdef CAN3
+extern "C" void CAN3_TX_IRQHandler( void )
+{
+  HAL_CAN_IRQHandler( &hcan3 );
 }
 #endif
 

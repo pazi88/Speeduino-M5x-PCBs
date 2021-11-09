@@ -159,6 +159,10 @@ static CAN_HandleTypeDef     hcan1;
 static STM32_CAN* _CAN2 = nullptr;
 static CAN_HandleTypeDef     hcan2;
 #endif
+#ifdef CAN3
+static STM32_CAN* _CAN3 = nullptr;
+static CAN_HandleTypeDef     hcan3;
+#endif
 
 #endif
 
