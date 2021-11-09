@@ -1,11 +1,11 @@
 #include "STM32_CAN.h"
 
-STM32_CAN::STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins ) {
+STM32_CAN::STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins, RXQUEUE_TABLE rxSize, TXQUEUE_TABLE txSize ) {
 
   if (_canIsActive) { return; }
   
-  sizeRxBuffer=SIZE_RX_BUFFER; //default value, use setRxBufferSize to change it before begin
-  sizeTxBuffer=SIZE_TX_BUFFER; //default value, use setTxBufferSize to change it before begin
+  sizeRxBuffer=rxSize;
+  sizeTxBuffer=txSize;
   
   if ( canPort == CAN1 ) {
     _CAN1 = this;
@@ -28,15 +28,10 @@ STM32_CAN::STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins ) {
   _pins = pins;
 }
 
-/* Init and start CAN */
+// Init and start CAN
 void STM32_CAN::begin() {
-    init( n_pCanHandle );
-}
 
-/* Init and start CAN */
-void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
-
-  /* exit if CAN already is active */
+  // exit if CAN already is active
   if ( _canIsActive ) return;
   
   _canIsActive = true;
@@ -73,7 +68,7 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
       __HAL_RCC_GPIOA_CLK_ENABLE();
       GPIO_InitStruct.Pull = GPIO_NOPULL;
       #if defined(__HAL_RCC_AFIO_CLK_ENABLE)
-	  __HAL_AFIO_REMAP_CAN1_1(); // To use PA11/12 pins for CAN1.
+      __HAL_AFIO_REMAP_CAN1_1(); // To use PA11/12 pins for CAN1.
       __HAL_RCC_AFIO_CLK_ENABLE();
       GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       GPIO_InitStruct.Pin = GPIO_PIN_11;
@@ -93,7 +88,7 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
       __HAL_RCC_GPIOD_CLK_ENABLE();
       GPIO_InitStruct.Pull = GPIO_NOPULL;
       #if defined(__HAL_RCC_AFIO_CLK_ENABLE)
-	  __HAL_AFIO_REMAP_CAN1_3(); // To use PD0/1 pins for CAN1.
+      __HAL_AFIO_REMAP_CAN1_3(); // To use PD0/1 pins for CAN1.
       __HAL_RCC_AFIO_CLK_ENABLE();
       GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -116,7 +111,7 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
     HAL_NVIC_SetPriority( CAN1_TX_IRQn, 15, 0 ); // 15 is lowest possible priority
     HAL_NVIC_EnableIRQ( CAN1_TX_IRQn );
     
-    CanHandle->Instance = CAN1;
+    n_pCanHandle->Instance = CAN1;
   }
 #ifdef CAN2  
   else if ( _canPort == CAN2 )
@@ -168,7 +163,7 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
     HAL_NVIC_SetPriority( CAN2_TX_IRQn, 15, 0 ); // 15 is lowest possible priority
     HAL_NVIC_EnableIRQ( CAN2_TX_IRQn );
     
-    CanHandle->Instance = CAN2;
+    n_pCanHandle->Instance = CAN2;
   }
 #endif
 
@@ -201,25 +196,25 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
     HAL_NVIC_SetPriority( CAN3_TX_IRQn, 15, 0 ); // 15 is lowest possible priority
     HAL_NVIC_EnableIRQ( CAN3_TX_IRQn );
     
-    CanHandle->Instance = CAN3;
+    n_pCanHandle->Instance = CAN3;
   }
 #endif
 
-  CanHandle->Init.TimeTriggeredMode = DISABLE;
-  CanHandle->Init.AutoBusOff = DISABLE;
-  CanHandle->Init.AutoWakeUp = DISABLE;
-  CanHandle->Init.AutoRetransmission  = DISABLE;
-  CanHandle->Init.ReceiveFifoLocked  = DISABLE;
-  CanHandle->Init.TransmitFifoPriority = ENABLE;
-  CanHandle->Init.Mode = CAN_MODE_NORMAL;
+  n_pCanHandle->Init.TimeTriggeredMode = DISABLE;
+  n_pCanHandle->Init.AutoBusOff = DISABLE;
+  n_pCanHandle->Init.AutoWakeUp = DISABLE;
+  n_pCanHandle->Init.AutoRetransmission  = DISABLE;
+  n_pCanHandle->Init.ReceiveFifoLocked  = DISABLE;
+  n_pCanHandle->Init.TransmitFifoPriority = ENABLE;
+  n_pCanHandle->Init.Mode = CAN_MODE_NORMAL;
 }
 
 void STM32_CAN::setBaudRate( uint32_t baud ) {
 
-  /* Calculate and set baudrate */
+  // Calculate and set baudrate
   calculateBaudrate( n_pCanHandle, baud );
 
-  /*Initializes CAN */
+  // Initializes CAN
   HAL_CAN_Init( n_pCanHandle );
   
   initializeFilters();
@@ -259,15 +254,15 @@ bool STM32_CAN::write(CAN_message_t &CAN_tx_msg, bool sendMB ) {
   if( HAL_CAN_AddTxMessage( n_pCanHandle, &TxHeader, CAN_tx_msg.buf, &TxMailbox) != HAL_OK )
   {
     /* in normal situation we add up the message to TX ring buffer, if there is no free TX mailbox. But the TX mailbox interrupt is using this same function
-	to move the messages from ring buffer to empty TX mailboxes, so for that use case, there is this check */
+    to move the messages from ring buffer to empty TX mailboxes, so for that use case, there is this check */
     if( sendMB != true ) 
-	{
+    {
       if( addToRingBuffer( txRing, CAN_tx_msg ) == false )
-	  {
+      {
         ret = false; // no more room
       }
     }
-	else { ret = false; }
+    else { ret = false; }
   }
   __HAL_CAN_ENABLE_IT(n_pCanHandle, CAN_IT_TX_MAILBOX_EMPTY);
   return ret;
@@ -281,42 +276,42 @@ bool STM32_CAN::read(CAN_message_t &CAN_rx_msg) {
   return ret;
 }
 
-bool STM32_CAN::setFilter( uint8_t bank_num, uint32_t filter_id, uint32_t mask, uint32_t filter_mode )
+bool STM32_CAN::setFilter( uint8_t bank_num, uint32_t filter_id, uint32_t mask, uint32_t filter_mode, uint32_t filter_scale, uint32_t fifo )
 {
-	CAN_FilterTypeDef sFilterConfig;
+  CAN_FilterTypeDef sFilterConfig;
 
-	sFilterConfig.FilterBank = bank_num;
-	sFilterConfig.FilterMode = filter_mode;
-	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
-	sFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-	sFilterConfig.FilterActivation = ENABLE;
+  sFilterConfig.FilterBank = bank_num;
+  sFilterConfig.FilterMode = filter_mode;
+  sFilterConfig.FilterScale = filter_scale;
+  sFilterConfig.FilterFIFOAssignment = fifo;
+  sFilterConfig.FilterActivation = ENABLE;
 
-	if ( filter_id <= 0x7FF ) {
-      // Standard ID can be only 11 bits long
-      sFilterConfig.FilterIdHigh = (uint16_t) (filter_id << 5);
-      sFilterConfig.FilterIdLow = 0;
-      sFilterConfig.FilterMaskIdHigh = (uint16_t) (mask << 5);
-      sFilterConfig.FilterMaskIdLow = CAN_ID_EXT;
-	}
-    else {
-      // Extended ID
-      sFilterConfig.FilterIdLow = (uint16_t) (filter_id << 3);
-      sFilterConfig.FilterIdLow |= CAN_ID_EXT;
-      sFilterConfig.FilterIdHigh = (uint16_t) (filter_id >> 13);
-      sFilterConfig.FilterMaskIdLow = (uint16_t) (mask << 3);
-      sFilterConfig.FilterMaskIdLow |= CAN_ID_EXT;
-      sFilterConfig.FilterMaskIdHigh = (uint16_t) (mask >> 13);
-	}
- 
-	// Enable filter
-	if (HAL_CAN_ConfigFilter( n_pCanHandle, &sFilterConfig ) != HAL_OK)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+  if ( filter_id <= 0x7FF ) {
+    // Standard ID can be only 11 bits long
+    sFilterConfig.FilterIdHigh = (uint16_t) (filter_id << 5);
+    sFilterConfig.FilterIdLow = 0;
+    sFilterConfig.FilterMaskIdHigh = (uint16_t) (mask << 5);
+    sFilterConfig.FilterMaskIdLow = CAN_ID_EXT;
+  }
+  else {
+    // Extended ID
+    sFilterConfig.FilterIdLow = (uint16_t) (filter_id << 3);
+    sFilterConfig.FilterIdLow |= CAN_ID_EXT;
+    sFilterConfig.FilterIdHigh = (uint16_t) (filter_id >> 13);
+    sFilterConfig.FilterMaskIdLow = (uint16_t) (mask << 3);
+    sFilterConfig.FilterMaskIdLow |= CAN_ID_EXT;
+    sFilterConfig.FilterMaskIdHigh = (uint16_t) (mask >> 13);
+  }
+
+  // Enable filter
+  if (HAL_CAN_ConfigFilter( n_pCanHandle, &sFilterConfig ) != HAL_OK)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 bool STM32_CAN::setMBFilterProcessing( CAN_BANK bank_num, uint32_t filter_id, uint32_t mask )
@@ -337,15 +332,12 @@ bool STM32_CAN::setMBFilter(CAN_BANK bank_num, uint32_t id1, uint32_t id2)
   return setFilter( uint8_t(bank_num), id1, id2, CAN_FILTERMODE_IDLIST );
 }
 
+// TBD, do this using "setFilter" -function
 void STM32_CAN::initializeFilters()
 {
   CAN_FilterTypeDef sFilterConfig;
-  if ( _canPort == CAN1 ) {
-    sFilterConfig.FilterBank = 0; // Can1 0 to 13
-  } 
-  else {
-    sFilterConfig.FilterBank = 14; // Can2 14 to 27
-  }
+  // We set first bank to accept all RX messages
+  sFilterConfig.FilterBank = 0;
   sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
   sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
   sFilterConfig.FilterIdHigh = 0x0000;
@@ -354,7 +346,15 @@ void STM32_CAN::initializeFilters()
   sFilterConfig.FilterMaskIdLow = 0x0000;
   sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
   sFilterConfig.FilterActivation = ENABLE;
-  sFilterConfig.SlaveStartFilterBank = 14; // Define that filter bank from 14 to 27 are for Can2, this is not relevant for devices with only one CAN
+  #ifdef CAN2
+  // Filter banks from 14 to 27 are for Can2, so first for Can2 is bank 14. This is not relevant for devices with only one CAN
+  if ( _canPort == CAN1 ) {
+    sFilterConfig.SlaveStartFilterBank = 14;
+  }
+  if ( _canPort == CAN2 ) {
+    sFilterConfig.FilterBank = 14;
+  } 
+  #endif
   
   HAL_CAN_ConfigFilter( n_pCanHandle, &sFilterConfig );
 }
@@ -386,42 +386,33 @@ void STM32_CAN::initRingBuffer(RingbufferTypeDef &ring, volatile CAN_message_t *
 bool STM32_CAN::addToRingBuffer (RingbufferTypeDef &ring, const CAN_message_t &msg)
 {
     uint16_t nextEntry;
-
     nextEntry =(ring.head + 1) % ring.size;
 
-    /* check if the ring buffer is full */
-
+    // check if the ring buffer is full
     if(nextEntry == ring.tail) {
         return(false);
     }
 
-    /* add the element to the ring */
-
+    // add the element to the ring */
     memcpy((void *)&ring.buffer[ring.head],(void *)&msg, sizeof(CAN_message_t));
 
-    /* bump the head to point to the next free entry */
-
+    // bump the head to point to the next free entry
     ring.head = nextEntry;
 
     return(true);
 }
 bool STM32_CAN::removeFromRingBuffer(RingbufferTypeDef &ring, CAN_message_t &msg)
 {
-
-    /* check if the ring buffer has data available */
-
+    // check if the ring buffer has data available
     if(isRingBufferEmpty(ring) == true) {
         return(false);
     }
 
-    /* copy the message */
-
+    // copy the message
     memcpy((void *)&msg,(void *)&ring.buffer[ring.tail], sizeof(CAN_message_t));
 
-    /* bump the tail pointer */
-
+    // bump the tail pointer
     ring.tail =(ring.tail + 1) % ring.size;
-
     return(true);
 }
 
@@ -434,25 +425,14 @@ bool STM32_CAN::isRingBufferEmpty(RingbufferTypeDef &ring)
     return(false);
 }
 
-/*
- * \brief Count the number of entries in the specified ring buffer.
- *
- * \param ring - ring buffer to use.
- *
- * \retval a count of the number of elements in the ring buffer.
- *
- */
-
 uint32_t STM32_CAN::ringBufferCount(RingbufferTypeDef &ring)
 {
     int32_t entries;
-
     entries = ring.head - ring.tail;
 
     if(entries < 0) {
         entries += ring.size;
     }
-
     return((uint32_t)entries);
 }
 
@@ -591,41 +571,41 @@ uint32_t STM32_CAN::getAPB1Clock()
 
 void STM32_CAN::enableMBInterrupts()
 {
-    if (n_pCanHandle->Instance == CAN1) 
-    {
-      HAL_NVIC_EnableIRQ( CAN1_TX_IRQn );
-    }
+  if (n_pCanHandle->Instance == CAN1) 
+  {
+    HAL_NVIC_EnableIRQ( CAN1_TX_IRQn );
+  }
 #ifdef CAN2
-    else if (n_pCanHandle->Instance == CAN2) 
-    {
-      HAL_NVIC_EnableIRQ( CAN2_TX_IRQn );
-    }
+  else if (n_pCanHandle->Instance == CAN2) 
+  {
+    HAL_NVIC_EnableIRQ( CAN2_TX_IRQn );
+  }
 #endif
 #ifdef CAN3
-    else if (n_pCanHandle->Instance == CAN3) 
-    {
-      HAL_NVIC_EnableIRQ( CAN3_TX_IRQn );
-    }
+  else if (n_pCanHandle->Instance == CAN3) 
+  {
+    HAL_NVIC_EnableIRQ( CAN3_TX_IRQn );
+  }
 #endif
 }
 
 void STM32_CAN::disableMBInterrupts()
 {
-    if (n_pCanHandle->Instance == CAN1) 
-    {
-      HAL_NVIC_DisableIRQ( CAN1_TX_IRQn );
-    }
+  if (n_pCanHandle->Instance == CAN1) 
+  {
+    HAL_NVIC_DisableIRQ( CAN1_TX_IRQn );
+  }
 #ifdef CAN2
-    else if (n_pCanHandle->Instance == CAN2)
-    {
-      HAL_NVIC_DisableIRQ( CAN2_TX_IRQn );
-    }
+  else if (n_pCanHandle->Instance == CAN2)
+  {
+    HAL_NVIC_DisableIRQ( CAN2_TX_IRQn );
+  }
 #endif
 #ifdef CAN3
-    else if (n_pCanHandle->Instance == CAN3)
-    {
-      HAL_NVIC_DisableIRQ( CAN3_TX_IRQn );
-    }
+  else if (n_pCanHandle->Instance == CAN3)
+  {
+    HAL_NVIC_DisableIRQ( CAN3_TX_IRQn );
+  }
 #endif
 }
 
@@ -646,7 +626,7 @@ void STM32_CAN::enableSilentLoopBack( bool yes ) {
 
 void STM32_CAN::enableFIFO(bool status)
 {
-  //Nothing to do here. The FIFO is on by default.
+  //Nothing to do here. The FIFO is on by default. This is just to work with code made for Teensy FlexCan.
 }
 
 /* Interupt functions 

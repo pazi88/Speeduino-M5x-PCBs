@@ -9,19 +9,10 @@ https://github.com/J-f-Jensen/libraries/tree/master/STM32_CAN
 https://github.com/jiauka/STM32_CAN
 */
 
-
 #ifndef STM32_CAN_H
 #define STM32_CAN_H
 
 #include <Arduino.h>
-
-#if !defined(SIZE_RX_BUFFER)
-#define SIZE_RX_BUFFER  64 // receive incoming ring buffer default size
-#endif
-
-#if !defined(SIZE_TX_BUFFER)
-#define SIZE_TX_BUFFER  64 // transmit ring buffer default size
-#endif
 
 // This struct is directly copied from Teensy FlexCAN library to retain compatibility with it. Not all are in use with STM32.
 // Source: https://github.com/tonton81/FlexCAN_T4/
@@ -39,11 +30,37 @@ typedef struct CAN_message_t {
   uint8_t len = 8;         // length of data
   uint8_t buf[8] = { 0 };  // data
   int8_t mb = 0;           // used to identify mailbox reception
-  uint8_t bus = 1;         // used to identify where the message came from when events() is used. CAN(1) and CAN(2) in use
+  uint8_t bus = 1;         // used to identify where the message came (CAN1, CAN2 or CAN3)
   bool seq = 0;            // sequential frames
 } CAN_message_t;
 
 typedef enum CAN_PINS {DEF, ALT, ALT_2,} CAN_PINS;
+
+typedef enum RXQUEUE_TABLE {
+  RX_SIZE_2 = (uint16_t)2,
+  RX_SIZE_4 = (uint16_t)4,
+  RX_SIZE_8 = (uint16_t)8,
+  RX_SIZE_16 = (uint16_t)16,
+  RX_SIZE_32 = (uint16_t)32,
+  RX_SIZE_64 = (uint16_t)64,
+  RX_SIZE_128 = (uint16_t)128,
+  RX_SIZE_256 = (uint16_t)256,
+  RX_SIZE_512 = (uint16_t)512,
+  RX_SIZE_1024 = (uint16_t)1024
+} RXQUEUE_TABLE;
+
+typedef enum TXQUEUE_TABLE {
+  TX_SIZE_2 = (uint16_t)2,
+  TX_SIZE_4 = (uint16_t)4,
+  TX_SIZE_8 = (uint16_t)8,
+  TX_SIZE_16 = (uint16_t)16,
+  TX_SIZE_32 = (uint16_t)32,
+  TX_SIZE_64 = (uint16_t)64,
+  TX_SIZE_128 = (uint16_t)128,
+  TX_SIZE_256 = (uint16_t)256,
+  TX_SIZE_512 = (uint16_t)512,
+  TX_SIZE_1024 = (uint16_t)1024
+} TXQUEUE_TABLE;
 
 /* Teensy FlexCAN uses Mailboxes for different RX filters, but in STM32 there is Filter Banks. These work practically same way,
 so the Filter Banks are named as mailboxes in "setMBFilter" -functions, to retain compatibility with Teensy FlexCAN library.
@@ -87,26 +104,21 @@ typedef enum CAN_FLTEN {
 class STM32_CAN {
 
   public:
-    STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins );
+    // Default buffer sizes are set to 16. But this can be changed by using constructor in main code.
+    STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins, RXQUEUE_TABLE rxSize = RX_SIZE_16, TXQUEUE_TABLE txSize = TX_SIZE_16 );
 
     void begin();
     void setBaudRate(uint32_t baud);
     bool write( CAN_message_t &CAN_tx_msg, bool sendMB = false );
     bool read( CAN_message_t &CAN_rx_msg );
-	// Manually set STM32 filter bank parameters
-    bool setFilter(uint8_t bank_num, uint32_t filter_id, uint32_t mask, uint32_t filter_mode = CAN_FILTERMODE_IDMASK);
-	// Teensy FlexCAN style "set filter" -functions
-	bool setMBFilterProcessing(CAN_BANK bank_num, uint32_t filter_id, uint32_t mask);
+    // Manually set STM32 filter bank parameters
+    bool setFilter(uint8_t bank_num, uint32_t filter_id, uint32_t mask, uint32_t filter_mode = CAN_FILTERMODE_IDMASK, uint32_t filter_scale = CAN_FILTERSCALE_32BIT, uint32_t fifo = CAN_FILTER_FIFO0);
+    // Teensy FlexCAN style "set filter" -functions
+    bool setMBFilterProcessing(CAN_BANK bank_num, uint32_t filter_id, uint32_t mask);
     //void setMBFilter(CAN_FLTEN input); /* enable/disable traffic for all MBs (for individual masking) */
     //void setMBFilter(CAN_BANK mb_num, CAN_FLTEN input); /* set specific MB to accept/deny traffic */
     bool setMBFilter(CAN_BANK bank_num, uint32_t id1); /* input 1 ID to be filtered */
     bool setMBFilter(CAN_BANK bank_num, uint32_t id1, uint32_t id2); /* input 2 ID's to be filtered */
-  
-    // Before begin, you can define rx buffer size. Default is SIZE_RX_BUFFER. This does not have effect after begin.
-    void setRxBufferSize(uint16_t size) {if (!isInitialized()) sizeRxBuffer = size;}
-
-    // Before begin, you can define global tx buffer size. Default is SIZE_TX_BUFFER. This does not have effect after begin.
-    void setTxBufferSize(uint16_t size) {if (!isInitialized() ) sizeTxBuffer=size;}
 
     void enableLoopBack(bool yes = 1);
     void enableSilentMode(bool yes = 1);
@@ -134,13 +146,12 @@ class STM32_CAN {
     uint16_t sizeTxBuffer;
   
   private:
-	void      initializeFilters();
+    void      initializeFilters();
     bool      isInitialized() { return rx_buffer != 0; }
     void      initRingBuffer( RingbufferTypeDef &ring, volatile CAN_message_t *buffer, uint32_t size );
     void      initializeBuffers( void );
     bool      isRingBufferEmpty( RingbufferTypeDef &ring );
     uint32_t  ringBufferCount( RingbufferTypeDef &ring );
-    void      init( CAN_HandleTypeDef* CanHandle );
     void      calculateBaudrate( CAN_HandleTypeDef *CanHandle, int Baudrate );
     uint32_t  getAPB1Clock( void );
 
@@ -148,7 +159,7 @@ class STM32_CAN {
     volatile CAN_message_t *tx_buffer;
     
     bool     _canIsActive = false;
-	CAN_PINS _pins;
+    CAN_PINS _pins;
 
     CAN_HandleTypeDef *n_pCanHandle;
     CAN_TypeDef*      _canPort;
