@@ -170,8 +170,6 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
     break;
 }
   Can1.write(CAN_msg_CLT_TPS);
-  Can1.write(CAN_msg_CLT_TPS);
-  Can1.write(CAN_msg_CLT_TPS);
 
   // Send fuel consumption and error lights
   if (CEL < 200){  
@@ -197,8 +195,6 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
   CAN_msg_MPG_CEL.buf[1]= pwLSB;  // LSB Fuel consumption
   CAN_msg_MPG_CEL.buf[2]= pwLSB;  // MSB Fuel Consumption
   CAN_msg_MPG_CEL.buf[3]= tempLight ;  // Overheat light
-  Can1.write(CAN_msg_MPG_CEL);
-  Can1.write(CAN_msg_MPG_CEL);
   Can1.write(CAN_msg_MPG_CEL);
   MSGcounter++;
   if (MSGcounter >= 3)

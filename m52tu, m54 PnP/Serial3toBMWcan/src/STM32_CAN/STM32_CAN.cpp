@@ -39,23 +39,23 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
   
   initializeBuffers();
   
-  /* Configure CAN **************************************************/
-  /* Struct init*/
+  // Configure CAN
   if ( _canPort == CAN1 )
   {
+    //CAN1
     __HAL_RCC_CAN1_CLK_ENABLE();
     
     if (_pins == ALT) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
-      #if defined(STM32F1xx)
-      __HAL_AFIO_REMAP_CAN1_2();
+      #if defined(__HAL_RCC_AFIO_CLK_ENABLE)  // Some MCUs like F1xx uses AFIO to set pins, so if there is AFIO defined, we use that.
+      __HAL_AFIO_REMAP_CAN1_2();  // To use PB8/9 pins for CAN1.
       __HAL_RCC_AFIO_CLK_ENABLE();
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;  // If AFIO is used, there doesn't seem to be "very high" option for speed, so we use "high" -setting.
       GPIO_InitStruct.Pin = GPIO_PIN_8;
       GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
       HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
       GPIO_InitStruct.Pin = GPIO_PIN_9;
-      #else
+      #else  // Without AFIO, this is the way to set the pins for CAN.
       GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
       GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
       GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -66,7 +66,8 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
      if (_pins == DEF) {
       __HAL_RCC_GPIOA_CLK_ENABLE();
       GPIO_InitStruct.Pull = GPIO_NOPULL;
-      #if defined(STM32F1xx)
+      #if defined(__HAL_RCC_AFIO_CLK_ENABLE)
+	  __HAL_AFIO_REMAP_CAN1_1(); // To use PA11/12 pins for CAN1.
       __HAL_RCC_AFIO_CLK_ENABLE();
       GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       GPIO_InitStruct.Pin = GPIO_PIN_11;
@@ -85,7 +86,8 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
      if (_pins == ALT_2) {
       __HAL_RCC_GPIOD_CLK_ENABLE();
       GPIO_InitStruct.Pull = GPIO_NOPULL;
-      #if defined(STM32F1xx)
+      #if defined(__HAL_RCC_AFIO_CLK_ENABLE)
+	  __HAL_AFIO_REMAP_CAN1_3(); // To use PD0/1 pins for CAN1.
       __HAL_RCC_AFIO_CLK_ENABLE();
       GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
       GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -101,12 +103,11 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
       HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
     }
 
-    /*##-3- Configure the NVIC #################################################*/
-    /* NVIC configuration for CAN1 Reception complete interrupt */
-    HAL_NVIC_SetPriority( CAN1_RX0_IRQn, 15, 0 );
+    // NVIC configuration for CAN1 Reception complete interrupt
+    HAL_NVIC_SetPriority( CAN1_RX0_IRQn, 15, 0 ); // 15 is lowest possible priority
     HAL_NVIC_EnableIRQ( CAN1_RX0_IRQn );
-    /* NVIC configuration for CAN1 Transmission complete interrupt */
-    HAL_NVIC_SetPriority( CAN1_TX_IRQn, 15, 0 );
+    // NVIC configuration for CAN1 Transmission complete interrupt
+    HAL_NVIC_SetPriority( CAN1_TX_IRQn, 15, 0 ); // 15 is lowest possible priority
     HAL_NVIC_EnableIRQ( CAN1_TX_IRQn );
     
     CanHandle->Instance = CAN1;
@@ -114,51 +115,52 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
 #ifdef CAN2  
   else
   {
-    /* USER CODE END CAN2_MspInit 0 */
-    /* CAN2 clock enable */
-    #if defined(STM32F1xx)
+    //CAN2
+    __HAL_RCC_CAN1_CLK_ENABLE(); // CAN1 clock needs to be enabled too, because CAN2 works as CAN1 slave.
     __HAL_RCC_CAN2_CLK_ENABLE();
-
-    HAL_RCC_CAN1_CLK_ENABLED++;
-    if(HAL_RCC_CAN1_CLK_ENABLED==1){
-      __HAL_RCC_CAN1_CLK_ENABLE();
     }
-    #else
-    GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
-    #endif
-     if (_pins == ALT) {
+    if (_pins == ALT) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
-      /**CAN2 GPIO Configuration    
-      PB5     ------> CAN2_RX
-      PB6     ------> CAN2_TX 
-      */
-      GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6;
-      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      #if defined(__HAL_RCC_AFIO_CLK_ENABLE)
+      __HAL_AFIO_REMAP_CAN2_ENABLE(); // To use PB5/6 pins for CAN2. Don't ask me why this has different name than for CAN1.
+      __HAL_RCC_AFIO_CLK_ENABLE();
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+      GPIO_InitStruct.Pin = GPIO_PIN_5;
+      GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+      GPIO_InitStruct.Pin = GPIO_PIN_6;
+      #else
       GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
+      GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      #endif
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
       HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     } 
     if (_pins == DEF) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
-      /**CAN2 GPIO Configuration    
-      PB12     ------> CAN2_RX
-      PB13     ------> CAN2_TX 
-      */
-      GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
-      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      #if defined(__HAL_RCC_AFIO_CLK_ENABLE)
+      __HAL_AFIO_REMAP_CAN2_DISABLE(); // To use PB12/13 pins for CAN2.
+      __HAL_RCC_AFIO_CLK_ENABLE();
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+      GPIO_InitStruct.Pin = GPIO_PIN_12;
+      GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+      GPIO_InitStruct.Pin = GPIO_PIN_13;
+      #else
       GPIO_InitStruct.Alternate = GPIO_AF9_CAN2;
+      GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      #endif
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
       HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     }
 
-    /*##-3- Configure the NVIC #################################################*/
-    /* NVIC configuration for CAN2 Reception complete interrupt */
-    HAL_NVIC_SetPriority( CAN2_RX0_IRQn, 15, 0 );
+    // NVIC configuration for CAN2 Reception complete interrupt
+    HAL_NVIC_SetPriority( CAN2_RX0_IRQn, 15, 0 ); // 15 is lowest possible priority
     HAL_NVIC_EnableIRQ( CAN2_RX0_IRQn );
-	/* NVIC configuration for CAN2 Transmission complete interrupt */
-    HAL_NVIC_SetPriority( CAN2_TX_IRQn, 15, 0 );
+    // NVIC configuration for CAN2 Transmission complete interrupt
+    HAL_NVIC_SetPriority( CAN2_TX_IRQn, 15, 0 ); // 15 is lowest possible priority
     HAL_NVIC_EnableIRQ( CAN2_TX_IRQn );
     
     CanHandle->Instance = CAN2;
