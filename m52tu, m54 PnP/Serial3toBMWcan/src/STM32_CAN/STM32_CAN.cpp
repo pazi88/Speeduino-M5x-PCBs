@@ -119,12 +119,11 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
     CanHandle->Instance = CAN1;
   }
 #ifdef CAN2  
-  else
+  else if ( _canPort == CAN2 )
   {
     //CAN2
     __HAL_RCC_CAN1_CLK_ENABLE(); // CAN1 clock needs to be enabled too, because CAN2 works as CAN1 slave.
     __HAL_RCC_CAN2_CLK_ENABLE();
-    }
     if (_pins == ALT) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
       #if defined(__HAL_RCC_AFIO_CLK_ENABLE)
@@ -174,11 +173,10 @@ void STM32_CAN::init( CAN_HandleTypeDef* CanHandle ) {
 #endif
 
 #ifdef CAN3 
-  else
+  else if ( _canPort == CAN3 )
   {
     //CAN3
     __HAL_RCC_CAN3_CLK_ENABLE();
-    }
     if (_pins == ALT) {
       __HAL_RCC_GPIOB_CLK_ENABLE();
       GPIO_InitStruct.Alternate = GPIO_AF11_CAN3;
