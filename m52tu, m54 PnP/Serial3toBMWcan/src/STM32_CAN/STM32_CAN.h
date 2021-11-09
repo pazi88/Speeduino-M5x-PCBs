@@ -109,6 +109,8 @@ class STM32_CAN {
     void setTxBufferSize(uint16_t size) {if (!isInitialized() ) sizeTxBuffer=size;}
 
     void enableLoopBack(bool yes = 1);
+    void enableSilentMode(bool yes = 1);
+    void enableSilentLoopBack(bool yes = 1);
     void enableFIFO(bool status = 1);
     void enableMBInterrupts();
     void disableMBInterrupts();

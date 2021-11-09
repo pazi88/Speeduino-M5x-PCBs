@@ -634,6 +634,16 @@ void STM32_CAN::enableLoopBack( bool yes ) {
   else { n_pCanHandle->Init.Mode = CAN_MODE_NORMAL; }
 }
 
+void STM32_CAN::enableSilentMode( bool yes ) {
+  if ( yes ) { n_pCanHandle->Init.Mode = CAN_MODE_SILENT; }
+  else { n_pCanHandle->Init.Mode = CAN_MODE_NORMAL; }
+}
+
+void STM32_CAN::enableSilentLoopBack( bool yes ) {
+  if ( yes ) { n_pCanHandle->Init.Mode = CAN_MODE_SILENT_LOOPBACK; }
+  else { n_pCanHandle->Init.Mode = CAN_MODE_NORMAL; }
+}
+
 void STM32_CAN::enableFIFO(bool status)
 {
   //Nothing to do here. The FIFO is on by default.
