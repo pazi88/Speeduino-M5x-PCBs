@@ -435,25 +435,20 @@ void readCanMessage() {
       ascMSG = true;
       VSS = ((CAN_inMsg.buf[2] << 8) | (CAN_inMsg.buf[1]));
       // conversion (speeduino doesn't have internal conversion for CAN data, so we do it here)
-      VSS = VSS - 252;
       VSS = VSS >> 7; // divide by 128
     break;
     case  0x1F0:
       VSS1 = ((CAN_inMsg.buf[1] << 8) | (CAN_inMsg.buf[0]));
       // conversion
-      VSS1 = VSS1 - 44;
       VSS1 = VSS1 >> 4; // divide by 16
 
       VSS2 = ((CAN_inMsg.buf[3] << 8) | (CAN_inMsg.buf[2]));
-      VSS2 = VSS2 - 44;
       VSS2 = VSS2 >> 4;
 
       VSS3 = ((CAN_inMsg.buf[5] << 8) | (CAN_inMsg.buf[4]));
-      VSS3 = VSS3 - 44;
       VSS3 = VSS3 >> 4;
 
       VSS4 = ((CAN_inMsg.buf[7] << 8) | (CAN_inMsg.buf[6]));
-      VSS4 = VSS4 - 44;
       VSS4 = VSS4 >> 4;
     break;
 	default:
@@ -693,7 +688,6 @@ void loop() {
   if ( (millis()-oldtime) > 500) { // timeout if for some reason reading serial3 fails
     oldtime = millis();
     Serial.println ("Timeout from speeduino!");
-    Serial.println (Serial3.available());
     requestData();                // restart data reading
   }
 // we can also read stuff back from instrument cluster
