@@ -29,7 +29,7 @@ STM32_CAN::STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins, RXQUEUE_TABLE rxSize,
 }
 
 // Init and start CAN
-void STM32_CAN::begin() {
+void STM32_CAN::begin( bool retransmission ) {
 
   // exit if CAN already is active
   if ( _canIsActive ) return;
@@ -203,7 +203,8 @@ void STM32_CAN::begin() {
   n_pCanHandle->Init.TimeTriggeredMode = DISABLE;
   n_pCanHandle->Init.AutoBusOff = DISABLE;
   n_pCanHandle->Init.AutoWakeUp = DISABLE;
-  n_pCanHandle->Init.AutoRetransmission  = DISABLE;
+  if (retransmission){ n_pCanHandle->Init.AutoRetransmission  = ENABLE; }
+  else { n_pCanHandle->Init.AutoRetransmission  = DISABLE; }
   n_pCanHandle->Init.ReceiveFifoLocked  = DISABLE;
   n_pCanHandle->Init.TransmitFifoPriority = ENABLE;
   n_pCanHandle->Init.Mode = CAN_MODE_NORMAL;
@@ -311,6 +312,34 @@ bool STM32_CAN::setFilter( uint8_t bank_num, uint32_t filter_id, uint32_t mask, 
   else
   {
     return 0;
+  }
+}
+
+void STM32_CAN::setMBFilter(CAN_BANK bank_num, CAN_FLTEN input)
+{
+  CAN_FilterTypeDef sFilterConfig;
+  sFilterConfig.FilterBank = uint8_t(bank_num);
+  if (input = ACCEPT_ALL) { sFilterConfig.FilterActivation = ENABLE; }
+  else { sFilterConfig.FilterActivation = DISABLE; }
+  
+  HAL_CAN_ConfigFilter( n_pCanHandle, &sFilterConfig );
+}
+
+void STM32_CAN::setMBFilter(CAN_FLTEN input)
+{
+  CAN_FilterTypeDef sFilterConfig;
+  uint8_t max_bank_num = 27;
+  uint8_t min_bank_num = 0;
+  #ifdef CAN2
+  if ( _canPort == CAN1){ max_bank_num = 13; }
+  else if ( _canPort == CAN2){ min_bank_num = 14; }
+  #endif
+  for ( uint8_t bank_num = min_bank_num ; bank_num <= max_bank_num ; bank_num++ )
+  {
+    sFilterConfig.FilterBank = bank_num;
+    if (input = ACCEPT_ALL) { sFilterConfig.FilterActivation = ENABLE; }
+    else { sFilterConfig.FilterActivation = DISABLE; }
+    HAL_CAN_ConfigFilter( n_pCanHandle, &sFilterConfig );
   }
 }
 

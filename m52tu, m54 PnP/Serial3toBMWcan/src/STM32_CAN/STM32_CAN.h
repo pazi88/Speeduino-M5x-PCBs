@@ -6,7 +6,7 @@ things from Teensy FlexCAN library to make it compatible with the CAN features t
 Links to repositories that have helped with this:
 https://github.com/nopnop2002/Arduino-STM32-CAN
 https://github.com/J-f-Jensen/libraries/tree/master/STM32_CAN
-https://github.com/jiauka/STM32_CAN
+https://github.com/jiauka/STM32F1_CAN
 */
 
 #ifndef STM32_CAN_H
@@ -106,8 +106,8 @@ class STM32_CAN {
   public:
     // Default buffer sizes are set to 16. But this can be changed by using constructor in main code.
     STM32_CAN( CAN_TypeDef* canPort, CAN_PINS pins, RXQUEUE_TABLE rxSize = RX_SIZE_16, TXQUEUE_TABLE txSize = TX_SIZE_16 );
-
-    void begin();
+    // Begin. By default the automatic retransmission is enabled. If it causes problems, use begin(false) to disable it.
+    void begin( bool retransmission = true );
     void setBaudRate(uint32_t baud);
     bool write( CAN_message_t &CAN_tx_msg, bool sendMB = false );
     bool read( CAN_message_t &CAN_rx_msg );
@@ -115,8 +115,8 @@ class STM32_CAN {
     bool setFilter(uint8_t bank_num, uint32_t filter_id, uint32_t mask, uint32_t filter_mode = CAN_FILTERMODE_IDMASK, uint32_t filter_scale = CAN_FILTERSCALE_32BIT, uint32_t fifo = CAN_FILTER_FIFO0);
     // Teensy FlexCAN style "set filter" -functions
     bool setMBFilterProcessing(CAN_BANK bank_num, uint32_t filter_id, uint32_t mask);
-    //void setMBFilter(CAN_FLTEN input); /* enable/disable traffic for all MBs (for individual masking) */
-    //void setMBFilter(CAN_BANK mb_num, CAN_FLTEN input); /* set specific MB to accept/deny traffic */
+    void setMBFilter(CAN_FLTEN input); /* enable/disable traffic for all MBs (for individual masking) */
+    void setMBFilter(CAN_BANK bank_num, CAN_FLTEN input); /* set specific MB to accept/deny traffic */
     bool setMBFilter(CAN_BANK bank_num, uint32_t id1); /* input 1 ID to be filtered */
     bool setMBFilter(CAN_BANK bank_num, uint32_t id1, uint32_t id2); /* input 2 ID's to be filtered */
 
