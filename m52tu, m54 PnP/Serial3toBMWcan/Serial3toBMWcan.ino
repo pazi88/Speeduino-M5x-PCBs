@@ -28,7 +28,8 @@
 #define R_MESSAGE               1
 #define A_MESSAGE               2
 
-#define PW_ADJUST           40000
+//Stock M52TU injectors 25000
+#define PW_ADJUST           20000
 
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
@@ -196,10 +197,10 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
     PWcount = PWcount - 0xFFFF;
     updatePW = updatePW - (0xFFFF * PW_ADJUST);
   }
-  pwMSB = uint16_t(PWcount) >> 8;  // split to high and low byte
-  pwLSB = uint16_t(PWcount);
+  pwMSB = highByte(uint16_t(PWcount));  // split to high and low byte
+  pwLSB = lowByte(uint16_t(PWcount));
   CAN_msg_MPG_CEL.buf[1]= pwLSB;  // LSB Fuel consumption
-  CAN_msg_MPG_CEL.buf[2]= pwLSB;  // MSB Fuel Consumption
+  CAN_msg_MPG_CEL.buf[2]= pwMSB;  // MSB Fuel Consumption
   CAN_msg_MPG_CEL.buf[3]= tempLight ;  // Overheat light
   Can1.write(CAN_msg_MPG_CEL);
   MSGcounter++;
