@@ -28,6 +28,8 @@
 #define R_MESSAGE               1
 #define A_MESSAGE               2
 
+#define PW_ADJUST           40000
+
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
 static CAN_message_t CAN_msg_MPG_CEL;
@@ -110,7 +112,7 @@ uint8_t ambientTemp;
 uint8_t vssCanLSB;
 uint8_t vssCanMSB;
 int CLT; // to store coolant temp
-unsigned int PW,PWcount; // RPM and PW from speeduino
+uint32_t PWcount;
 uint8_t TPS,tempLight; // TPS value and overheat light on/off
 bool data_error; //indicator for the data from speeduino being ok.
 bool responseSent; // to keep track if we have responded to data request or not.
@@ -184,14 +186,18 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
   else{
     CAN_msg_MPG_CEL.buf[0]= 0x00;  // CEL off
   }
-  updatePW = updatePW + ( currentStatus.PW1 * (currentStatus.RPM/1000) );
-  PWcount = (updatePW/5500); // fuel consumption is measured by rate of change in instrument cluster. So PW counter is increased by steps of one. And rate of update depends on PW from speeduino. This isn't yet working correctly.
-    if (PWcount == 0xFFFF)
-    {
-      PWcount = 0;
-    }
-  pwMSB = PWcount >> 8;  // split to high and low byte
-  pwLSB = PWcount;
+  // This updates the fuel consumption counter. It's how much fuel is injected to engine, so PW and RPM affects it.
+  updatePW = updatePW + ( currentStatus.PW1 * currentStatus.RPM );
+  // We adjust the counter reading so that we get correct values sent to cluster. PW_ADJUST is just trial and error value. 
+  PWcount = updatePW / PW_ADJUST;
+  // Fuel consumption counter is 2-bytes so if the current value is higher than that, we roll over the counter.
+  if (PWcount > 0xFFFF)
+  {
+    PWcount = PWcount - 0xFFFF;
+    updatePW = updatePW - (0xFFFF * PW_ADJUST);
+  }
+  pwMSB = uint16_t(PWcount) >> 8;  // split to high and low byte
+  pwLSB = uint16_t(PWcount);
   CAN_msg_MPG_CEL.buf[1]= pwLSB;  // LSB Fuel consumption
   CAN_msg_MPG_CEL.buf[2]= pwLSB;  // MSB Fuel Consumption
   CAN_msg_MPG_CEL.buf[3]= tempLight ;  // Overheat light
@@ -227,7 +233,6 @@ void setup(){
   CAN_msg_MPG_CEL.id = 0x545; // CAN ID for fuel consumption and CEl light is 0x545
 
   // send this message to get rid of EML light and also set the static values for the message
-
   CAN_msg_MPG_CEL.buf[0]= 0x02;  // error State
   CAN_msg_MPG_CEL.buf[1]= 0x00;  // LSB Fuel consumption
   CAN_msg_MPG_CEL.buf[2]= 0x00;  // MSB Fuel Consumption
@@ -238,7 +243,7 @@ void setup(){
   CAN_msg_MPG_CEL.buf[7]= 0x00; // not used, but set to zero just in case.
   Can1.write(CAN_msg_MPG_CEL);
 
-// set the static values for the other two messages
+  // set the static values for the other two messages
   CAN_msg_RPM.buf[0]= 0x01;  //bitfield, Bit0 = 1 = terminal 15 on detected, Bit2 = 1 = 1 = the ASC message ASC1 was received within the last 500 ms and contains no plausibility errors
   CAN_msg_RPM.buf[1]= 0x0C;  //Indexed Engine Torque in % of C_TQ_STND TBD do torque calculation!!
   CAN_msg_RPM.buf[4]= 0x0C;  //Indicated Engine Torque in % of C_TQ_STND TBD do torque calculation!! Use same as for byte 1
@@ -252,11 +257,11 @@ void setup(){
   CAN_msg_CLT_TPS.buf[4]= 0x00;
   CAN_msg_CLT_TPS.buf[6]= 0x00;
   CAN_msg_CLT_TPS.buf[7]= 0x00; // not used, but set to zero just in case.
-// zero the data to be sent by CAN bus, so it's not just random garbage
 
-  CLT = 0;
+  // Start with sensible values for some of these variables.
+  CLT = 60;
   currentStatus.PW1 = 0;
-  PWcount = 0;
+  updatePW = 0;
   rpmLSB = 0;
   rpmMSB = 0;
   pwLSB = 0;
@@ -270,7 +275,7 @@ void setup(){
   MSGcounter = 0;
   ascMSG = false;
 
-// setup hardwaretimer to send data for instrument cluster in 50Hz pace
+  // setup hardwaretimer to send data for instrument cluster in 50Hz pace
 #if defined(TIM1)
   TIM_TypeDef *Instance = TIM1;
 #else
@@ -286,6 +291,7 @@ void setup(){
 #endif
   SendTimer->resume();
   
+  Serial.println ("Version date: 11.11.2021"); // To see from debug serial when is used code created.
   requestData(); // all set. Start requesting data from speeduino
 }
 
