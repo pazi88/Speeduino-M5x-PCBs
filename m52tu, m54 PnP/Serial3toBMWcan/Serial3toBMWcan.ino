@@ -252,12 +252,12 @@ void setup(){
   CAN_msg_RPM.buf[6]= 0x00;  //not used
   CAN_msg_RPM.buf[7]= 0x35;  //Theorethical Engine Torque in % of C_TQ_STND after charge intervention
 
-  CAN_msg_CLT_TPS.buf[0]= 0x11;
-  CAN_msg_CLT_TPS.buf[2]= 0xB2;
-  CAN_msg_CLT_TPS.buf[3]= 0x00;
-  CAN_msg_CLT_TPS.buf[4]= 0x00;
-  CAN_msg_CLT_TPS.buf[6]= 0x00;
-  CAN_msg_CLT_TPS.buf[7]= 0x00; // not used, but set to zero just in case.
+  CAN_msg_CLT_TPS.buf[0]= 0x11;  //Multiplexed Information
+  CAN_msg_CLT_TPS.buf[2]= 0xB2;  //CLT temp
+  CAN_msg_CLT_TPS.buf[3]= 0x00;  //Baro
+  CAN_msg_CLT_TPS.buf[4]= 0x08;  //bitfield, Bit0 = 0 = Clutch released, Bit 3 = 1 = engine running
+  CAN_msg_CLT_TPS.buf[6]= 0x00;  //TPS_VIRT_CRU_CAN (Not used)
+  CAN_msg_CLT_TPS.buf[7]= 0x00;  //not used, but set to zero just in case.
 
   // Start with sensible values for some of these variables.
   CLT = 60;
