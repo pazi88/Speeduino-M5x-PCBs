@@ -124,6 +124,8 @@ uint8_t SerialState,canin_channel,currentCommand;
 uint16_t CanAddress,runningClock;
 uint16_t VSS,VSS1,VSS2,VSS3,VSS4;
 uint8_t MSGcounter; //this keeps track of which multiplexed info is sent in 0x329 byte 0
+uint8_t radOutletTemp;
+uint8_t oilTemp;
 
 #if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
 void SendData(HardwareTimer*){void SendData();}
@@ -275,6 +277,8 @@ void setup(){
   newData = false;
   MSGcounter = 0;
   ascMSG = false;
+  radOutletTemp = 0;
+  oilTemp = 0;
 
   // setup hardwaretimer to send data for instrument cluster in 50Hz pace
 #if defined(TIM1)
@@ -388,6 +392,34 @@ void sendReply(uint8_t data[]) {
   valueToSend = convertValue(0, 0.01952);
   addValToData(valueToSend, data, 32 + offset, 1);
   
+  // Checksum
+  uint8_t checksum = 0;
+  for(uint8_t i = 0; i < data[1]-1; i++) {
+    checksum ^= data[i]; // Simple XOR checksum
+  }
+  data[data[1]-1] = checksum;
+  DS2.writeData(data);
+  responseSent = true;
+  newData = false; // we have now sent out the data we have received.
+}
+
+void sendSpeedyReply(uint8_t data[]) {
+  data[0] = 0x12; // Not needed as our data already have that
+  data[1] = 53;
+  data[2] = 0xA0; // Ack
+  uint8_t offset = 3; // payload starts after 3 initial bytes
+  
+  // Just put data from speedyresponse to K-line response
+  for (uint8_t i = 0; i < 41; i++) {
+    data[i + offset] = SpeedyResponse[i];
+  }
+  addValToData(radOutletTemp, data, 41 + offset, 1);
+  addValToData(oilTemp, data, 42 + offset, 1);
+  addValToData(VSS1, data, 43 + offset, 2);
+  addValToData(VSS2, data, 45 + offset, 2);
+  addValToData(VSS3, data, 47 + offset, 2);
+  addValToData(VSS4, data, 49 + offset, 2);
+
   // Checksum
   uint8_t checksum = 0;
   for(uint8_t i = 0; i < data[1]-1; i++) {
@@ -540,7 +572,7 @@ void processData(){   // necessary conversion for the data before sending to CAN
   unsigned int tempRPM;
   data_error = false; // set the received data as ok
 
-currentStatus.secl = SpeedyResponse[0];
+  currentStatus.secl = SpeedyResponse[0];
   currentStatus.status1 = SpeedyResponse[1];
   currentStatus.engine = SpeedyResponse[2];
   currentStatus.dwell = SpeedyResponse[3];
@@ -713,6 +745,8 @@ void loop() {
         switch(data[2]) {
           case 0x0B:
             if(data[3] == 0x03) sendReply(data);
+            break;
+			if(data[3] == 0xFF) sendSpeedyReply(data);  // Special case to get whole unaltered speeduino response to be logged via K-line
             break;
           case 0x00:
             if(data[3] == 0x16) sendEcuId(data);
