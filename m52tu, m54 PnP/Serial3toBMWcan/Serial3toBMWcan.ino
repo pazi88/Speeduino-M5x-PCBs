@@ -28,8 +28,9 @@
 #define R_MESSAGE               1
 #define A_MESSAGE               2
 
-//Stock M52TU injectors 25000
-#define PW_ADJUST           20000
+//Stock M52TU injectors scaling. Adjust this to trim fuel consumption. (injector size affects this)
+//Bosch 0280155831 200000
+#define PW_ADJUST           250000
 
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
@@ -481,13 +482,13 @@ void readCanMessage() {
       VSS1 = ((CAN_inMsg.buf[1] << 8) | (CAN_inMsg.buf[0]));
       // conversion
       VSS1 = VSS1 >> 4; // divide by 16
-      VSS4 = VSS4 - 2;
+      VSS1 = VSS1 - 2;
       VSS2 = ((CAN_inMsg.buf[3] << 8) | (CAN_inMsg.buf[2]));
       VSS2 = VSS2 >> 4;
-      VSS4 = VSS4 - 2;
+      VSS2 = VSS2 - 2;
       VSS3 = ((CAN_inMsg.buf[5] << 8) | (CAN_inMsg.buf[4]));
       VSS3 = VSS3 >> 4;
-      VSS4 = VSS4 - 2;
+      VSS3 = VSS3 - 2;
       VSS4 = ((CAN_inMsg.buf[7] << 8) | (CAN_inMsg.buf[6]));
       VSS4 = VSS4 >> 4;
       VSS4 = VSS4 - 2;
