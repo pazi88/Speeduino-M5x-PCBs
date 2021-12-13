@@ -29,8 +29,8 @@
 #define A_MESSAGE               2
 
 //Stock M52TU injectors scaling. Adjust this to trim fuel consumption. (injector size affects this)
-//Bosch 0280155831 200000
-#define PW_ADJUST           250000
+//Bosch 0280155831 20000
+#define PW_ADJUST           25000
 
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
@@ -191,7 +191,7 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
     CAN_msg_MPG_CEL.buf[0]= 0x00;  // CEL off
   }
   // This updates the fuel consumption counter. It's how much fuel is injected to engine, so PW and RPM affects it.
-  updatePW = updatePW + ( currentStatus.PW1 * currentStatus.RPM );
+  updatePW = updatePW + ( currentStatus.PW1 * (currentStatus.RPM/10) );
   // We adjust the counter reading so that we get correct values sent to cluster. PW_ADJUST is just trial and error value. 
   PWcount = updatePW / PW_ADJUST;
   // Fuel consumption counter is 2-bytes so if the current value is higher than that, we roll over the counter.
