@@ -297,7 +297,7 @@ void setup(){
 #endif
   SendTimer->resume();
   
-  Serial.println ("Version date: 17.11.2021"); // To see from debug serial when is used code created.
+  Serial.println ("Version date: 14.12.2021"); // To see from debug serial when is used code created.
   requestData(); // all set. Start requesting data from speeduino
 }
 

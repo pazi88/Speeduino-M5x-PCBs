@@ -20,6 +20,9 @@ Some of the features this PCB has:
 - Provision to use DIY-EFI TinyWB wideband controller. (rev1.3)
 - Includes CAN-bus interface to control original instrument cluster in bmw e46/e38/e39 chassis. For other cars with regular cluster, this isn't needed.
 
+
+EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-speeduino-PnP-Core4
+
 ## Extra outputs on this board
 
 - Output pin 35 is wired to the electric thermostat. With help of programmable outputs in 202008 FW the electric thermostat can be used to control engine temps.
@@ -63,16 +66,16 @@ To get all the features working correctly for this board, set Core4 solder jumpe
 
 The CAN-bus interface uses STM32F103C8T6 bluepill board in conjunction of MCP2551 CAN transceiver to send CAN data to instrument cluster and read
 data from speeduino using Serial3. In order to program the bluepill for CAN-interface, you will need FTDI breakout board and the code is meant to be 
-used in Arduino IDE. The code works with regular STM32 core board manager for Arduino: https://github.com/stm32duino/Arduino_Core_STM32
+used in Platform IO. Although it works in Arduino IDE too, if the compiler flags are set properly for it, but PIO is easier.
 
-Use these settings in Arduino IDE to compile and upload the code. Choose correct COM port for your FTDI breakout board:
-![alt text](https://raw.githubusercontent.com/pazi88/8Ch-EGT/master/Arduino%20IDE%20settings.png)
+Steps to compile/upload code to the bluepill:
 
-NOTE! Use the Serial3toBMWcan -code with the bluepill. The other codes are to be used rev1.0/1.1 that used different CAN-bus interface. But
-due to problems in those, the older CAN-bus interface is not recommended to be used.
-
-
-EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-speeduino-PnP-Core4
+- Install Visual Studio Code: https://code.visualstudio.com/download
+- Add Paltform IO to the VS Code: https://platformio.org/
+- Download/clone this repository to your PC and open this folder in Platform IO (so you have the platformio.ini -file there)
+- Use the Platform IO to edit the COM port numbers in platformio.ini to match COM port number for the FTDI breakout board.
+- Click "Upload" and PIO should compile and upload the code to the bluepill (remember to set Boot0 jumper for the upload)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/PIO.png?raw=true)
 
 ## Replacing original DBW throttle body
 
