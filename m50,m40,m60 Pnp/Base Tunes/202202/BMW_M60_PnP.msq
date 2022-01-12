@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <msq xmlns="http://www.msefi.com/:msq">
-<bibliography author="TunerStudio MS Lite! 3.1.06 - EFI Analytics, Inc." tuneComment="" writeDate="Tue Jan 11 11:28:07 EET 2022"/>
-<versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2022.01" nPages="14" signature="speeduino 202201"/>
+<bibliography author="TunerStudio MS Lite! 3.1.06 - EFI Analytics, Inc." tuneComment="" writeDate="Wed Jan 12 11:30:19 EET 2022"/>
+<versionInfo fileFormat="5.0" firmwareInfo="Speeduino+202202" nPages="14" signature="speeduino 202202"/>
 <page>
 <pcVariable name="tsCanId">"0"</pcVariable>
-<pcVariable name="tsCanId">"CAN ID 0"</pcVariable>
 <pcVariable digits="0" name="rpmhigh" units="rpm">8000.0</pcVariable>
 <pcVariable digits="0" name="rpmwarn" units="rpm">5500.0</pcVariable>
 <pcVariable digits="0" name="rpmdang" units="rpm">6500.0</pcVariable>
@@ -2234,11 +2233,15 @@
          255.0 
       </constant>
 <constant name="onboard_log_csv_separator">"space"</constant>
+<constant name="onboard_log_file_style">"Disabled"</constant>
 <constant name="onboard_log_file_rate">"30Hz"</constant>
+<constant name="onboard_log_filenaming">"Overwrite"</constant>
+<constant name="onboard_log_storage">"sd-card"</constant>
 <constant name="onboard_log_trigger_boot">"On boot"</constant>
 <constant name="onboard_log_trigger_RPM">"Enabled"</constant>
 <constant name="onboard_log_trigger_prot">"Enabled"</constant>
 <constant name="onboard_log_trigger_Vbat">"Enabled"</constant>
+<constant name="onboard_log_trigger_Epin">"Disabled"</constant>
 <constant digits="0" name="onboard_log_tr1_duration" units="s">65535.0</constant>
 <constant digits="0" name="onboard_log_tr2_thr_on" units="RPM">25500.0</constant>
 <constant digits="0" name="onboard_log_tr2_thr_off" units="RPM">25500.0</constant>
@@ -2315,7 +2318,6 @@
 <setting name="enablehardware_test" value="enablehardware_test"/>
 <setting name="CAN_COMMANDS_OFF" value="CAN_COMMANDS_OFF"/>
 <setting name="CELSIUS" value="CELSIUS"/>
-<setting name="mcu_stm32" value="mcu_stm32"/>
 <setting name="resetcontrol_standard" value="resetcontrol_standard"/>
 <setting name="AFR" value="AFR"/>
 </settings>
