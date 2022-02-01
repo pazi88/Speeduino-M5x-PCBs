@@ -18,7 +18,7 @@ byte minusC = 0;
 
 #define CRUISE_CONTROL_PIN PB13  // Input pin for MFL
 #define CRUISE_LOW_TIME_THRES 5000  // There is 10ms between messages. If there has been more than 5ms from last falling edge, we can for sure say that new message has started.
-#define CRUISE_HIGH_TIME_THRES 400
+#define CRUISE_HIGH_TIME_THRES 250
 #define CRUISE_CONTROL_BUTTON_COUNT 4 // How many messages we need to see before we define if button has been pressed or released.
 
 #define BUTTON_PRESSED      1
