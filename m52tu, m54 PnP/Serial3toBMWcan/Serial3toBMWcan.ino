@@ -9,15 +9,17 @@
 //LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //THE SOFTWARE.
-#include "STM32_CAN.h"
-#define DS2_ENABLE
-#ifdef DS2_ENABLE
+
+#define REV1_5  // 1.5 board revision has new features that work only in that in newer. If you compile this to older boards, comment out this to avoid possible problems.
+#ifdef REV1_5
   #include "DS2.h"
+  #include <MFL.h>
 #endif
+#include "STM32_CAN.h"
 
 #ifdef ARDUINO_BLUEPILL_F103C8
   HardwareSerial Serial3(USART3); // for some reason this isn't defined in arduino_core_stm32
-  #ifdef DS2_ENABLE
+  #ifdef REV1_5
     HardwareSerial Serial2(USART2); // for some reason this isn't defined in arduino_core_stm32
     DS2 DS2(Serial2);
   #endif
@@ -39,7 +41,7 @@ static CAN_message_t CAN_inMsg;
 
 STM32_CAN Can1( CAN1, DEF, RX_SIZE_64, TX_SIZE_16 );
 
-// This struct gathers data read from speeduino
+// This struct gathers data read from speeduino. This is really jus tdirect copy of what speeduino has internally
 struct statuses {
   uint8_t secl; // secl is simply a counter that increments each second.
   uint8_t status1; // status1 Bitfield, inj1Status(0), inj2Status(1), inj3Status(2), inj4Status(3), DFCOOn(4), boostCutFuel(5), toothLog1Ready(6), toothLog2Ready(7)
@@ -217,9 +219,10 @@ void setup(){
   pinMode(pin, OUTPUT);
   Serial3.begin(115200);  // baudrate for Speeduino is 115200
   Serial.begin(115200); // for debugging
-  #ifdef DS2_ENABLE
+  #ifdef REV1_5
   Serial2.begin(9600, SERIAL_8E1);
   Serial2.setTimeout(ISO_TIMEOUT);
+  setupMFL();
   #endif
   
   Can1.begin();
@@ -301,7 +304,7 @@ void setup(){
   requestData(); // all set. Start requesting data from speeduino
 }
 
-#ifdef DS2_ENABLE
+#ifdef REV1_5
 uint32_t convertValue(float val, float mul = 1, float add = 0) {
   // uint32_t meaning we can set up to 4 bytes this way
   uint32_t convertedVal = (uint32_t) ((val - add)/mul); // we need to reverse what we do on logger side
@@ -737,7 +740,7 @@ void loop() {
   {
     readCanMessage();
   }
-#ifdef DS2_ENABLE
+#ifdef REV1_5
 // see if there is commands available from K-line
   if( responseSent == false ){
     // commands are 4 bytes long, so we only start reading RX buffer, when whe have full command there.
@@ -762,12 +765,14 @@ void loop() {
       }
     }
   }
-// if we have sent the response, we'll wait for the echo of to be filled in serial buffer and then we will just read it out to get rid of it.
+  // if we have sent the response, we'll wait for the echo of to be filled in serial buffer and then we will just read it out to get rid of it.
   else if( responseSent == true ){
     if( DS2.available() >= DS2.getEcho() ){
       DS2.readCommand(data);
       responseSent = false; // there is no more echo on the RX buffer, so we are ready to read new command
     }
   }
+  // Lets see if any of the cruise buttons have been pressed
+  updateCruise();
 #endif
 }
