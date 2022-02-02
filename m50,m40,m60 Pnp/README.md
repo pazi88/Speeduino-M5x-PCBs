@@ -39,21 +39,26 @@ Some of the features that latest rev 2.2 PCB has:
 - PCB can be populated with HC-05/06 bluetooth module
 - PCB can be populated with DIY-EFI TinyWB Module
 
-## Compiling speeduino code for Arduino mega
+EasyEda project link for the PCB: https://easyeda.com/pazi88/m50speeduino_copy
+
+## Speeduino code for Arduino mega
 
 The rev 1.x PCBs can use Speeduino FW without any changes. Just use Speeduino v0.4 board configuration in TS.
 Recommended way is to use Speedyloader to upload the Firmware to mega https://wiki.speeduino.com/en/Installing_Firmware 
 
-Rev2.0 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential 202005 or later speeduino FW is needed. Also the easy Speedyloader 
-FW upload can't be used but it requires manual compiling with small changes in code. See manual compiling instructions in Wiki at earlier link. 
-Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS to 3 in globals.h file:
-
-![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)
+Rev2.0 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential 202005 or later speeduino FW is needed with few customizations.
+To upload, use XLoader, instead of Speedyloader: https://www.hobbytronics.co.uk/arduino-xloader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
+Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m50%2Cm40%2Cm60%20Pnp#compiling-speeduino-code-by-yourself
 
 NOTE! 4/8 cyl engines or semi sequential injection on 6 cyl don't require custom FW in 2.x PCBs. It's only needed for 6-cyl sequential support.
 So even with 2.x PCB the speedyloder upload can be used for 4/8 cyl engines and 6 cyl semi sequential injection.
 
-EasyEda project link for the PCB: https://easyeda.com/pazi88/m50speeduino_copy
+### Compiling speeduino code by yourself
+
+If you want you can also manually compile and upload the custom 6-cyl sequential FW. See manual compiling instructions in Wiki at earlier link: https://wiki.speeduino.com/en/Installing_Firmware
+Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS to 3 in globals.h file:
+
+![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)
 
 ## DIY-EFI TinyWB Module
 
