@@ -36,7 +36,7 @@ void updateCruise() {
       if (cruiseBufferCopy[i] > CRUISE_HIGH_TIME_THRES) value |= 1 << (7 - i);
     }
   
-    if (value == 252 && minusC < CRUISE_CONTROL_BUTTON_COUNT) {
+    if (value == 254 && minusC < CRUISE_CONTROL_BUTTON_COUNT) {
       minusC++;
 
       if (minusC == CRUISE_CONTROL_BUTTON_COUNT) MFL_CRUISE_MINUS = BUTTON_PRESSED;
@@ -49,11 +49,12 @@ void updateCruise() {
       if (minusC == 0) MFL_CRUISE_MINUS = BUTTON_UNPRESSED;
     }
 
-    if (value == 182 && plusC < CRUISE_CONTROL_BUTTON_COUNT) {
+    if (value == 146 && plusC < CRUISE_CONTROL_BUTTON_COUNT) {
       plusC++;
       if (plusC == CRUISE_CONTROL_BUTTON_COUNT) MFL_CRUISE_PLUS = BUTTON_PRESSED;
+      Serial.println(F("Speed Plus"));
       return;
-        Serial.println(F("Speed Plus"));
+
     }
     else if (plusC > 0) {
       plusC--;
@@ -61,12 +62,12 @@ void updateCruise() {
       if (plusC == 0) MFL_CRUISE_PLUS = BUTTON_UNPRESSED;
     }
 
-    if (value == 218 && ioC < CRUISE_CONTROL_BUTTON_COUNT) {
+    if (value == 216 && ioC < CRUISE_CONTROL_BUTTON_COUNT) {
       ioC++;
 
       if (ioC == CRUISE_CONTROL_BUTTON_COUNT) MFL_CRUISE_IO = BUTTON_PRESSED;
-      return;
       Serial.println(F("IO"));
+      return;
     }
     else if (ioC > 0) {
       ioC--;
@@ -74,11 +75,11 @@ void updateCruise() {
       if (ioC == 0) MFL_CRUISE_IO = BUTTON_UNPRESSED;
     }
 
-    if (value == 110 && onC < CRUISE_CONTROL_BUTTON_COUNT) {
+    if (value == 74 && onC < CRUISE_CONTROL_BUTTON_COUNT) {
       onC++;
       if (onC == CRUISE_CONTROL_BUTTON_COUNT) MFL_CRUISE_ON = BUTTON_PRESSED;
-      return;
         Serial.println(F("Cruise On"));
+      return;
     }
     else if (onC > 0) {
       onC--;
