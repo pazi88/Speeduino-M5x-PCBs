@@ -55,7 +55,7 @@ So even with 2.x PCB the speedyloder upload can be used for 4/8 cyl engines and 
 
 ### Compiling speeduino code by yourself
 
-If you want you can also manually compile and upload the custom 6-cyl sequential FW. See manual compiling instructions in Wiki at earlier link: https://wiki.speeduino.com/en/Installing_Firmware
+If you want, you can also manually compile and upload the custom 6-cyl sequential FW. See manual compiling instructions at Wiki: https://wiki.speeduino.com/en/Installing_Firmware
 Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS to 3 in globals.h file:
 
 ![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)

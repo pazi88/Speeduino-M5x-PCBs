@@ -43,19 +43,24 @@ EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-
   traditional tacho, there is no need for wiring changes. e46/e39/e38 uses tacho trough CAN bus, so this output is not used in those. 
   NOTE! to use traditional tacho output, the JP6 needs to be soldered to pull-up configuration(1-2) in CORE4
 
-## Compiling speeduino code for Core4
+## Speeduino code for Core4
 
 The rev1.0/1.1 PCBs can use Speeduino FW without any changes. Just use 201909 speeduino FW release or newer and select DIY-EFI CORE4 v1.0 as board layout in TS.
 Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware 
 
-Rev1.2 onwards allows 6-cyl sequential injection and in order to run those 202005 or later speeduino FW is needed. Also the easy Speedyloader 
-FW upload can't be used but it requires manual compiling with small changes in code. See manual compiling instructions in Wiki at earlier link. 
-Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS to 3 in globals.h file:
-
-![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)
+Rev1.2 nwards allows 6-cyl sequential injection and in order to run 6 cyl sequential 202005 or later speeduino FW is needed with few customizations.
+To upload, use XLoader, instead of Speedyloader: https://www.hobbytronics.co.uk/arduino-xloader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
+Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu%2C%20m54%20PnP#compiling-speeduino-code-by-yourself
 
 It's also recommended to change number of fuel outputs to 6 instead of 4 in speeduino.ini -file for Core4. But this isn't mandatory. It just gets rid of the possible
 warnings in TS and allows to use HW test mode for injectors 5 and 6.
+
+### Compiling speeduino code by yourself
+
+If you want, you can also manually compile and upload the custom 6-cyl sequential FW. See manual compiling instructions at Wiki: https://wiki.speeduino.com/en/Installing_Firmware
+Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS to 3 in globals.h file:
+
+![alt text](https://pazi88.kuvat.fi/kuvat/Projektikuvat/Random%20projektit/speeduino/Settings.png?img=smaller)
 
 ## Set solder jumpers for Core4
 
