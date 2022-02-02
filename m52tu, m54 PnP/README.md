@@ -48,7 +48,7 @@ EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-
 The rev1.0/1.1 PCBs can use Speeduino FW without any changes. Just use 201909 speeduino FW release or newer and select DIY-EFI CORE4 v1.0 as board layout in TS.
 Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware 
 
-Rev1.2 nwards allows 6-cyl sequential injection and in order to run 6 cyl sequential 202005 or later speeduino FW is needed with few customizations.
+Rev1.2 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential 202005 or later speeduino FW is needed with few customizations.
 To upload, use XLoader, instead of Speedyloader: https://www.hobbytronics.co.uk/arduino-xloader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
 Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu%2C%20m54%20PnP#compiling-speeduino-code-by-yourself
 
