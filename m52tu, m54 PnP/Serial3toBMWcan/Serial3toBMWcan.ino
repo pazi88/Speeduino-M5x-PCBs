@@ -14,6 +14,8 @@
 #ifdef REV1_5
   #include "DS2.h"
   #include <MFL.h>
+  #define pin_53  PA1  // Connected to Arduino Mega pin 53 (SS0 in schema)
+  #define pin_49  PC15  // Connected to Arduino Mega pin 49 (SS1 in schema)
 #endif
 #include "STM32_CAN.h"
 
@@ -24,7 +26,6 @@
     DS2 DS2(Serial2);
   #endif
 #endif
-#define pin  LED_BUILTIN
 
 #define NOTHING_RECEIVED        0
 #define R_MESSAGE               1
@@ -149,7 +150,7 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
   CAN_msg_RPM.buf[2]= rpmLSB; // RPM LSB
   CAN_msg_RPM.buf[3]= rpmMSB; // RPM MSB
   if ( Can1.write(CAN_msg_RPM) ){
-    digitalWrite(pin, !digitalRead(pin)); // Just to see with internal led that CAN messages are being sent
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // Just to see with internal led that CAN messages are being sent
   }
   //Send CLT and TPS
   
@@ -216,13 +217,15 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
 }
 
 void setup(){
-  pinMode(pin, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial3.begin(115200);  // baudrate for Speeduino is 115200
   Serial.begin(115200); // for debugging
   #ifdef REV1_5
   Serial2.begin(9600, SERIAL_8E1);
   Serial2.setTimeout(ISO_TIMEOUT);
   setupMFL();
+  pinMode(pin_53, OUTPUT);
+  pinMode(pin_49, OUTPUT);
   #endif
   
   Can1.begin();
@@ -774,5 +777,10 @@ void loop() {
   }
   // Lets see if any of the cruise buttons have been pressed
   updateCruise();
+  // Set input pin states on Speeduino based on cruise buttons.
+  digitalWrite(pin_53, MFL_CRUISE_MINUS);
+  digitalWrite(pin_49, MFL_CRUISE_PLUS);
+  // This doesn't have any real purpose, but lets light up cruise light in instrument cluster if cruise on/off button is pressed.
+  CAN_msg_MPG_CEL.buf[0] = (MFL_CRUISE_IO << 3);
 #endif
 }
