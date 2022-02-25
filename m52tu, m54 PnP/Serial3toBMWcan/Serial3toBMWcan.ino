@@ -32,7 +32,7 @@
 #define A_MESSAGE               2
 
 //Stock M52TU injectors scaling. Adjust this to trim fuel consumption. (injector size affects this)
-//Bosch 0280155831 20000
+//Bosch 0280155831 19000
 #define PW_ADJUST           25000
 
 static CAN_message_t CAN_msg_RPM;
@@ -166,8 +166,8 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
     {
       CAN_msg_CLT_TPS.buf[0]= 0x80;
     }
-	else
-	{
+    else
+    {
       CAN_msg_CLT_TPS.buf[0]= 0x86;
     }
     break;
@@ -663,7 +663,7 @@ void processData(){   // necessary conversion for the data before sending to CAN
   if (currentStatus.TPS < 101 && data_error == false)  // TPS values can only be from 0-100
   {
     TPS = map(currentStatus.TPS, 0, 100, 0, 254); // 0-100 TPS value mapped to 0x00 to 0xFE range.
-	newData = true; // we have now new data and it passes the checks.
+    newData = true; // we have now new data and it passes the checks.
   }
   else
   {
@@ -753,7 +753,7 @@ void loop() {
           case 0x0B:
             if(data[3] == 0x03) sendReply(data);
             break;
-			if(data[3] == 0xFF) sendSpeedyReply(data);  // Special case to get whole unaltered speeduino response to be logged via K-line
+            if(data[3] == 0xFF) sendSpeedyReply(data);  // Special case to get whole unaltered speeduino response to be logged via K-line
             break;
           case 0x00:
             if(data[3] == 0x16) sendEcuId(data);
