@@ -10,10 +10,6 @@ void setupMFL() {
   prev_time = 0;
   update_cruise = false;
   startByte = false;
-  ioC = 0;
-  onC = 0;
-  plusC = 0;
-  minusC = 0;
   attachInterrupt(CRUISE_CONTROL_PIN, &readCruiseLow, FALLING);
 }
 
@@ -36,56 +32,17 @@ void updateCruise() {
       if (cruiseBufferCopy[i] > CRUISE_HIGH_TIME_THRES) value |= 1 << (7 - i);
     }
   
-    if (value == 254 && minusC < CRUISE_CONTROL_BUTTON_COUNT) {
-      minusC++;
+    if ( (value&144) == 0 ) { MFL_CRUISE_ON = BUTTON_PRESSED; }
+    else { MFL_CRUISE_ON = BUTTON_UNPRESSED; }
 
-      if (minusC == CRUISE_CONTROL_BUTTON_COUNT) MFL_CRUISE_MINUS = BUTTON_PRESSED;
-      Serial.println(F("Speed Minus"));
-      return;
-    }
-    else if (minusC > 0) {
-      minusC--;
-
-      if (minusC == 0) MFL_CRUISE_MINUS = BUTTON_UNPRESSED;
-    }
-
-    if (value == 146 && plusC < CRUISE_CONTROL_BUTTON_COUNT) {
-      plusC++;
-      if (plusC == CRUISE_CONTROL_BUTTON_COUNT) MFL_CRUISE_PLUS = BUTTON_PRESSED;
-      Serial.println(F("Speed Plus"));
-      return;
-
-    }
-    else if (plusC > 0) {
-      plusC--;
-
-      if (plusC == 0) MFL_CRUISE_PLUS = BUTTON_UNPRESSED;
-    }
-
-    if (value == 216 && ioC < CRUISE_CONTROL_BUTTON_COUNT) {
-      ioC++;
-
-      if (ioC == CRUISE_CONTROL_BUTTON_COUNT) MFL_CRUISE_IO = BUTTON_PRESSED;
-      Serial.println(F("IO"));
-      return;
-    }
-    else if (ioC > 0) {
-      ioC--;
-
-      if (ioC == 0) MFL_CRUISE_IO = BUTTON_UNPRESSED;
-    }
-
-    if (value == 74 && onC < CRUISE_CONTROL_BUTTON_COUNT) {
-      onC++;
-      if (onC == CRUISE_CONTROL_BUTTON_COUNT) MFL_CRUISE_ON = BUTTON_PRESSED;
-        Serial.println(F("Cruise On"));
-      return;
-    }
-    else if (onC > 0) {
-      onC--;
-
-      if (onC == 0) MFL_CRUISE_ON = BUTTON_UNPRESSED;
-    }
+    if ( (value&36) == 0 ) { MFL_CRUISE_IO = BUTTON_PRESSED; }
+    else { MFL_CRUISE_IO = BUTTON_UNPRESSED; }
+	
+    if ( (value&72) == 0 ) { MFL_CRUISE_PLUS = BUTTON_PRESSED; }
+    else { MFL_CRUISE_PLUS = BUTTON_UNPRESSED; }
+	
+    if ( (value&2) == 0 ) { MFL_CRUISE_MINUS = BUTTON_PRESSED; }
+    else { MFL_CRUISE_MINUS = BUTTON_UNPRESSED; }
   }
 }
 
