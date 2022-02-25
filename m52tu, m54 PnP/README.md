@@ -14,7 +14,7 @@ NOTE 2! OBD2 system is not supported in these boards, so if your country require
 
 Some of the features this PCB has:
 - Compatible with Speeduino FW (rev1.0/1.1 are directly compatible. Rev1.2/1.3 require small changes.)
-- 6-cyl sequential fuel in rev1.2/1.3
+- 6-cyl sequential fuel in rev1.2 and later
 - Uses DIY-EFI Core4 ECU module, instead of Arduino Mega. For more info: https://diy-efi.co.uk/product/core4-module
 - Provision to use Spartan2 OEM wideband controller. For more info: https://www.14point7.com/products/spartan-2-oem
 - Provision to use DIY-EFI TinyWB wideband controller. (rev1.3)
