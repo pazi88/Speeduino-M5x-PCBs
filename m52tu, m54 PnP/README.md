@@ -17,7 +17,7 @@ Some of the features this PCB has:
 - 6-cyl sequential fuel in rev1.2 and later
 - Uses DIY-EFI Core4 ECU module, instead of Arduino Mega. For more info: https://diy-efi.co.uk/product/core4-module
 - Provision to use Spartan2 OEM wideband controller. For more info: https://www.14point7.com/products/spartan-2-oem
-- Provision to use DIY-EFI TinyWB wideband controller. (rev1.3)
+- Provision to use DIY-EFI TinyWB wideband controller. (rev1.3 and later): https://diy-efi.co.uk/product/tinywb_module
 - Includes CAN-bus interface to control original instrument cluster in bmw e46/e38/e39 chassis. For other cars with regular cluster, this isn't needed.
 
 
