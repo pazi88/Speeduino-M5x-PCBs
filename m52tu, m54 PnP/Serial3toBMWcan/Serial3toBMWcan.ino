@@ -114,8 +114,6 @@ uint8_t odometerLSB;
 uint8_t odometerMSB;
 uint8_t FuelLevel;
 uint8_t ambientTemp;
-uint8_t vssCanLSB;
-uint8_t vssCanMSB;
 int CLT; // to store coolant temp
 uint32_t PWcount;
 uint8_t TPS,tempLight; // TPS value and overheat light on/off
@@ -303,7 +301,7 @@ void setup(){
 #endif
   SendTimer->resume();
   
-  Serial.println ("Version date: 14.12.2021"); // To see from debug serial when is used code created.
+  Serial.println ("Version date: 24.3.2022"); // To see from debug serial when is used code created.
   requestData(); // all set. Start requesting data from speeduino
 }
 
@@ -338,7 +336,7 @@ void sendReply(uint8_t data[]) {
   addValToData(currentStatus.RPM, data, 0 + offset, 2);
   
   // VSS
-  addValToData(((vssCanMSB << 8) | (vssCanLSB)), data, 2 + offset, 1);
+  addValToData(VSS1, data, 2 + offset, 1);
   
   // TPS
   valueToSend = convertValue(currentStatus.TPS, 0.390625);
@@ -365,7 +363,7 @@ void sendReply(uint8_t data[]) {
   addValToData(valueToSend, data, 11 + offset, 1);
   
   // IPW
-  valueToSend = convertValue(currentStatus.PW1, 0.04);
+  valueToSend = convertValue((currentStatus.PW1 / 1000), 0.04);
   addValToData(valueToSend, data, 12 + offset, 2);
 
   // ICV?
@@ -598,6 +596,8 @@ void processData(){   // necessary conversion for the data before sending to CAN
   currentStatus.VE = SpeedyResponse[18];
   currentStatus.afrTarget = SpeedyResponse[19];
   currentStatus.PW1 = ((SpeedyResponse [21] << 8) | (SpeedyResponse [20])); // PW low & high (Int) TBD: probaply no need to split high and low bytes etc. this could be all simpler
+  currentStatus.tpsDOT = SpeedyResponse[22];
+  currentStatus.advance = SpeedyResponse[23];
   currentStatus.TPS = SpeedyResponse[24];
   currentStatus.loopsPerSecond = ((SpeedyResponse [26] << 8) | (SpeedyResponse [25]));
   currentStatus.freeRAM = ((SpeedyResponse [28] << 8) | (SpeedyResponse [27]));
