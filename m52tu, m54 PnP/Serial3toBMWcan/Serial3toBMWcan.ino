@@ -14,6 +14,7 @@
 #ifdef REV1_5
   #include "DS2.h"
   #include <MFL.h>
+  #include <OBD2.h>
   #define pin_53  PA1  // Connected to Arduino Mega pin 53 (SS0 in schema)
   #define pin_49  PC15  // Connected to Arduino Mega pin 49 (SS1 in schema)
 #endif
@@ -123,6 +124,8 @@ bool data_error; //indicator for the data from speeduino being ok.
 bool responseSent; // to keep track if we have responded to data request or not.
 bool newData; // This tells if we have new data available from speeduino or not.
 bool ascMSG; // ASC message received.
+bool OBD2;
+bool OBD_init;
 uint8_t data[255]; // For DS2 data
 uint8_t SerialState,canin_channel,currentCommand;
 uint16_t CanAddress,runningClock;
@@ -284,6 +287,8 @@ void setup(){
   newData = false;
   MSGcounter = 0;
   ascMSG = false;
+  OBD2 = false;
+  OBD_init = false;
   radOutletTemp = 0;
   oilTemp = 0;
 
@@ -308,6 +313,29 @@ void setup(){
 }
 
 #ifdef REV1_5
+void switchToOBD2() {
+  Serial2.end();
+  Serial2.begin(10400, SERIAL_8E1);
+  Serial2.setTimeout(ISO_TIMEOUT);
+  OBD2 = true;
+}
+
+void sendOBDResponse() {
+  uint8_t modulo256;
+  uint8_t i = 1;
+  Serial2.write(data[0]);
+  modulo256 = data[0];
+  Serial2.write(data[1]);
+    while (data[i] != modulo256)
+    {
+      i++;
+      Serial2.write(data[i]);
+      modulo256 += data[i];
+    }
+  i++;
+  Serial2.write(data[i]);
+}
+
 uint32_t convertValue(float val, float mul = 1, float add = 0) {
   // uint32_t meaning we can set up to 4 bytes this way
   uint32_t convertedVal = (uint32_t) ((val - add)/mul); // we need to reverse what we do on logger side
@@ -745,36 +773,66 @@ void loop() {
   }
 #ifdef REV1_5
 // see if there is commands available from K-line
-  if( responseSent == false ){
-    // commands are 4 bytes long, so we only start reading RX buffer, when whe have full command there.
-    if( (DS2.available() >= 4) && newData ){ // we also want to have new updated data available from speeduino, or it's not worth sending anything to K-line.
-      if(DS2.readCommand(data)){  //Read command will ensure it's own length and if checksum is ok.
-        switch(data[2]) {
-          case 0x0B:
-            if(data[3] == 0x03) sendReply(data);
-            break;
-            if(data[3] == 0xFF) sendSpeedyReply(data);  // Special case to get whole unaltered speeduino response to be logged via K-line
-            break;
-          case 0x00:
-            if(data[3] == 0x16) sendEcuId(data);
-            break;
-          case 0xA0:
-            Serial.println("Error! DS2 Received Ack.");
-            break;
-          default:
-            Serial.println("Not supported DS2 command");
-          break;
-        }
+  if( OBD2 == false ){
+    if( responseSent == false ){
+      // commands are 4 bytes long, so we only start reading RX buffer, when whe have full command there.
+      if( Serial2.available() > 0){ // we also want to have new updated data available from speeduino, or it's not worth sending anything to K-line.
+          if (Serial2.read() == 0x00)
+          {
+            Serial.println("OBD2");
+            switchToOBD2();
+		  }
+      }
+    }
+    // if we have sent the response, we'll wait for the echo of to be filled in serial buffer and then we will just read it out to get rid of it.
+    else if( responseSent == true ){
+      if( DS2.available() >= DS2.getEcho() ){
+        DS2.readCommand(data);
+        responseSent = false; // there is no more echo on the RX buffer, so we are ready to read new command
       }
     }
   }
-  // if we have sent the response, we'll wait for the echo of to be filled in serial buffer and then we will just read it out to get rid of it.
-  else if( responseSent == true ){
-    if( DS2.available() >= DS2.getEcho() ){
-      DS2.readCommand(data);
-      responseSent = false; // there is no more echo on the RX buffer, so we are ready to read new command
+  else {
+      uint8_t modulo256;
+	  uint8_t i = 1;
+      if( Serial2.available() > 5){
+	  data[0] = Serial2.read();
+	  modulo256 = data[0];
+	  data[1] = Serial2.read();
+      while (data[i] != modulo256)
+      {
+        i++;
+        data[i] = Serial2.read();
+        modulo256 += data[i];
+      }
+      switch(data[0]) {
+        case 0xC1:
+		  Serial.println("OBD2 init requested");
+		  	Serial.print(data[0]);
+			Serial.print(data[1]);
+			Serial.print(data[2]);
+			Serial.print(data[3]);
+			Serial.println(data[4]);
+          sendOBDinit();
+          break;
+        case 0xC2:
+          if(data[1] == 0x33) {
+            Serial.println("OBD2 data requested");
+			Serial.print(data[3]);
+			Serial.print(data[4]);
+			Serial.println(data[5]);
+            obd_response(data[3], data[4], data[5]);
+			sendOBDResponse();
+		  }
+          break;
+        default:
+          Serial.println("Not supported OBD2 command");
+		  Serial.println(data[0]);
+        break;
+      }
+	 }
     }
-  }
+
   // Lets see if any of the cruise buttons have been pressed
   updateCruise();
   // Set input pin states on Speeduino based on cruise buttons.
