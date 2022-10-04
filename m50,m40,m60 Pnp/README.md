@@ -39,7 +39,7 @@ Some of the features that latest rev 2.2 PCB has:
 - PCB can be populated with HC-05/06 bluetooth module
 - PCB can be populated with DIY-EFI TinyWB Module
 
-EasyEda project link for the PCB: https://easyeda.com/pazi88/m50speeduino_copy
+EasyEda project link for the PCB: https://oshwlab.com/pazi88/m50speeduino_copy_copy
 
 ## Speeduino code for Arduino mega
 
