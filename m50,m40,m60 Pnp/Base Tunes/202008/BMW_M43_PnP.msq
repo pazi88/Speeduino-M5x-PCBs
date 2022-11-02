@@ -404,7 +404,7 @@
 <constant digits="0" name="oddfire2" units="deg">0.0</constant>
 <constant digits="0" name="oddfire3" units="deg">0.0</constant>
 <constant digits="0" name="oddfire4" units="deg">0.0</constant>
-<constant name="idleUpPin">"36"</constant>
+<constant name="idleUpPin">"21"</constant>
 <constant name="idleUpPolarity">"Inverted"</constant>
 <constant name="idleUpEnabled">"Off"</constant>
 <constant digits="0" name="idleUpAdder" units="% / Steps">163.0</constant>
