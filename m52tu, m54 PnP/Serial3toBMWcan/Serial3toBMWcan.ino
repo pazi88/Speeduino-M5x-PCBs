@@ -35,6 +35,8 @@
 //Bosch 0280155831 19000
 #define PW_ADJUST           25000
 
+#define SerialUpdateRate 30  // 30 Hz rate limit to update secondary serial data from speeduino
+
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
 static CAN_message_t CAN_msg_MPG_CEL;
@@ -121,6 +123,7 @@ bool data_error; //indicator for the data from speeduino being ok.
 bool responseSent; // to keep track if we have responded to data request or not.
 bool newData; // This tells if we have new data available from speeduino or not.
 bool ascMSG; // ASC message received.
+bool doRequest; // when true, it's ok to reques more data from speeduino serial
 uint8_t data[255]; // For DS2 data
 uint8_t SerialState,canin_channel,currentCommand;
 uint16_t CanAddress,runningClock;
@@ -131,10 +134,14 @@ uint8_t oilTemp;
 
 #if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
 void SendData(HardwareTimer*){void SendData();}
+void requestData(HardwareTimer*){void requestData();}
 #endif
  
 void requestData() {
-  Serial3.write("A"); // Send A to request real time data
+  if (doRequest){
+    Serial3.write("A"); // Send A to request real time data
+    doRequest = false;
+  }
 }
 
 void SendData()   // Send can messages in 50Hz phase from timer interrupt. This is important to be high enough Hz rate to make cluster work smoothly.
@@ -226,6 +233,7 @@ void setup(){
   pinMode(pin_49, OUTPUT);
   #endif
   
+  doRequest = false;
   Can1.begin();
   Can1.setBaudRate(500000);
   Can1.setMBFilterProcessing( MB0, 0x153, 0x1FFFFFFF );
@@ -287,22 +295,30 @@ void setup(){
 
   // setup hardwaretimer to send data for instrument cluster in 50Hz pace
 #if defined(TIM1)
-  TIM_TypeDef *Instance = TIM1;
+  TIM_TypeDef *Instance1 = TIM1;
 #else
-  TIM_TypeDef *Instance = TIM2;
+  TIM_TypeDef *Instance1 = TIM2;
 #endif
-  HardwareTimer *SendTimer = new HardwareTimer(Instance);
+  TIM_TypeDef *Instance2 = TIM3;
+  HardwareTimer *SendTimer = new HardwareTimer(Instance1);
+  HardwareTimer *requestTimer = new HardwareTimer(Instance2);
+  requestTimer->setOverflow(SerialUpdateRate, HERTZ_FORMAT);
   SendTimer->setOverflow(50, HERTZ_FORMAT); // 50 Hz
 #if ( STM32_CORE_VERSION_MAJOR < 2 )
   SendTimer->attachInterrupt(1, SendData);
   SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
+  requestTimer->attachInterrupt(1, requestData);
+  requestTimer->setMode(1, TIMER_OUTPUT_COMPARE);
 #else //2.0 forward
+    requestTimer->attachInterrupt(requestData);
+    requestTimer->attachInterrupt(requestData);
   SendTimer->attachInterrupt(SendData);
 #endif
+  requestTimer->resume();
   SendTimer->resume();
   
-  Serial.println ("Version date: 24.3.2022"); // To see from debug serial when is used code created.
-  requestData(); // all set. Start requesting data from speeduino
+  Serial.println ("Version date: 3.3.2023"); // To see from debug serial when is used code created.
+  doRequest = true; // all set. Start requesting data from speeduino
 }
 
 #ifdef REV1_5
@@ -660,9 +676,9 @@ void processData(){   // necessary conversion for the data before sending to CAN
     Serial.print ("Error. CLT received:"); Serial.print (currentStatus.CLT); Serial.print("\t");
   }
 
-  if (currentStatus.TPS < 101 && data_error == false)  // TPS values can only be from 0-100
+  if (currentStatus.TPS < 201 && data_error == false)  // TPS values can only be from 0-200 (previously this was from 0-100 on speeduino)
   {
-    TPS = map(currentStatus.TPS, 0, 100, 0, 254); // 0-100 TPS value mapped to 0x00 to 0xFE range.
+    TPS = map(currentStatus.TPS, 0, 200, 0, 254); // 0-100 TPS value mapped to 0x00 to 0xFE range.
     newData = true; // we have now new data and it passes the checks.
   }
   else
@@ -681,7 +697,7 @@ void HandleA()
     }
   processData();                  // do the necessary processing for received data
   displayData();                  // only required for debugging
-  requestData();                  // restart data reading
+  doRequest = true;               // restart data reading
   oldtime = millis();             // zero the timeout
   SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
 }
@@ -736,7 +752,7 @@ void loop() {
   if ( (millis()-oldtime) > 500) { // timeout if for some reason reading serial3 fails
     oldtime = millis();
     Serial.println ("Timeout from speeduino!");
-    requestData();                // restart data reading
+    doRequest = true;                // restart data reading
   }
 // we can also read stuff back from instrument cluster
   while (Can1.read(CAN_inMsg) ) 
