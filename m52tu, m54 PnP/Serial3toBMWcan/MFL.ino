@@ -32,16 +32,16 @@ void updateCruise() {
       if (cruiseBufferCopy[i] > CRUISE_HIGH_TIME_THRES) value |= 1 << (7 - i);
     }
   
-    if ( (value&144) == 0 ) { MFL_CRUISE_ON = BUTTON_PRESSED; }
+    if ( (value&110) == 0 ) { MFL_CRUISE_ON = BUTTON_PRESSED; }
     else { MFL_CRUISE_ON = BUTTON_UNPRESSED; }
 
-    if ( (value&36) == 0 ) { MFL_CRUISE_IO = BUTTON_PRESSED; }
+    if ( (value&218) == 0 ) { MFL_CRUISE_IO = BUTTON_PRESSED; }
     else { MFL_CRUISE_IO = BUTTON_UNPRESSED; }
 	
-    if ( (value&72) == 0 ) { MFL_CRUISE_PLUS = BUTTON_PRESSED; }
+    if ( (value&182) == 0 ) { MFL_CRUISE_PLUS = BUTTON_PRESSED; }
     else { MFL_CRUISE_PLUS = BUTTON_UNPRESSED; }
 	
-    if ( (value&2) == 0 ) { MFL_CRUISE_MINUS = BUTTON_PRESSED; }
+    if ( (value&252) == 0 ) { MFL_CRUISE_MINUS = BUTTON_PRESSED; }
     else { MFL_CRUISE_MINUS = BUTTON_UNPRESSED; }
   }
 }
