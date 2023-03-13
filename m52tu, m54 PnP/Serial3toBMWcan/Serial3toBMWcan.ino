@@ -1,6 +1,7 @@
 // This code is meant to read real time data from Speeduino EFI using serial3 connection in speeduino and convert that to CAN messages for BMW e39/e46 instrument clusters
 // The hardware that the code is meant to be used is STM32F103C8T6 STM32 Development Board (BluePill) with MCP2551 transceiver.
-// Created by pazi88 and there is no guarantee at all that any of this will work. Tested with https://github.com/stm32duino/Arduino_Core_STM32 board manager in Arduino IDE
+// Created by pazi88 and there is no guarantee at all that any of this will work.
+// Use Platform IO in VScode to compile this. The platformio.ini is at the folder above this. Open that folder to your workspace in PIO.
 
 //THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -16,9 +17,9 @@
   #include <MFL.h>
   #define pin_53  PA1  // Connected to Arduino Mega pin 53 (SS0 in schema)
   #define pin_49  PC15  // Connected to Arduino Mega pin 49 (SS1 in schema)
+#endif
   #define Fan_pin  PA15  // PWM fan output on ULN
   #define AC_pin  PB9  // AC compressor output on ULN
-#endif
 #include "STM32_CAN.h"
 
 #ifdef ARDUINO_BLUEPILL_F103C8
@@ -159,6 +160,7 @@ void requestData() {
     Serial3.write("A"); // Send A to request real time data
     doRequest = false;
   }
+  #ifdef REV1_5
   // The PWM fan duty is only requested once in a second. This doesn't need to be that frequently updated.
   if (rRequestCounter >= SerialUpdateRate){
     Serial3.write("r");  // Send r to request PWM fan duty
@@ -173,6 +175,7 @@ void requestData() {
   else {
     rRequestCounter++;
   }
+  #endif
 }
 
 void SendData()   // Send can messages in 50Hz phase from timer interrupt. This is important to be high enough Hz rate to make cluster work smoothly.
