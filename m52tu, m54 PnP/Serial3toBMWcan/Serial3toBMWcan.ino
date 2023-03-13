@@ -16,6 +16,8 @@
   #include <MFL.h>
   #define pin_53  PA1  // Connected to Arduino Mega pin 53 (SS0 in schema)
   #define pin_49  PC15  // Connected to Arduino Mega pin 49 (SS1 in schema)
+  #define Fan_pin  PA15  // PWM fan output on ULN
+  #define AC_pin  PB9  // AC compressor output on ULN
 #endif
 #include "STM32_CAN.h"
 
@@ -30,12 +32,15 @@
 #define NOTHING_RECEIVED        0
 #define R_MESSAGE               1
 #define A_MESSAGE               2
+#define PWM_MESSAGE             3
 
 //Stock M52TU injectors scaling. Adjust this to trim fuel consumption. (injector size affects this)
 //Bosch 0280155831 19000
 #define PW_ADJUST           25000
 
-#define SerialUpdateRate 30  // 30 Hz rate limit to update secondary serial data from speeduino
+#define SerialUpdateRate 30   // 30 Hz rate limit to update secondary serial data from speeduino
+#define PWMFanFrequency 100   // 100 Hz Frequency for the BMW PWM fan
+#define ClusterUpdateRate 50  // 50 Hz Frequency for the cars instrument cluster
 
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
@@ -44,7 +49,7 @@ static CAN_message_t CAN_inMsg;
 
 STM32_CAN Can1( CAN1, DEF, RX_SIZE_64, TX_SIZE_16 );
 
-// This struct gathers data read from speeduino. This is really jus tdirect copy of what speeduino has internally
+// This struct gathers data read from speeduino. This is really just direct copy of what speeduino has internally
 struct statuses {
   uint8_t secl; // secl is simply a counter that increments each second.
   uint8_t status1; // status1 Bitfield, inj1Status(0), inj2Status(1), inj3Status(2), inj4Status(3), DFCOOn(4), boostCutFuel(5), toothLog1Ready(6), toothLog2Ready(7)
@@ -105,6 +110,7 @@ struct statuses {
 statuses currentStatus;
 
 static uint32_t oldtime=millis();   // for the timeout
+uint32_t channel; // timer channel for PWM fan
 uint8_t SpeedyResponse[100]; //The data buffer for the serial3 data. This is longer than needed, just in case
 uint8_t rpmLSB;   // Least significant byte for RPM message
 uint8_t rpmMSB;  // Most significant byte for RPM message
@@ -124,6 +130,8 @@ bool responseSent; // to keep track if we have responded to data request or not.
 bool newData; // This tells if we have new data available from speeduino or not.
 bool ascMSG; // ASC message received.
 bool doRequest; // when true, it's ok to reques more data from speeduino serial
+uint8_t rRequestCounter; // only request PWM fan duty from speeduino once in a second
+uint8_t PWMfanDuty; // PWM fan duty
 uint8_t data[255]; // For DS2 data
 uint8_t SerialState,canin_channel,currentCommand;
 uint16_t CanAddress,runningClock;
@@ -136,11 +144,34 @@ uint8_t oilTemp;
 void SendData(HardwareTimer*){void SendData();}
 void requestData(HardwareTimer*){void requestData();}
 #endif
+
+// define hardwaretimers
+TIM_TypeDef *Instance1 = TIM1;
+TIM_TypeDef *Instance2 = TIM3;
+TIM_TypeDef *Instance3 = (TIM_TypeDef *)pinmap_peripheral(digitalPinToPinName(Fan_pin), PinMap_PWM); // this uses TIM2 ch1
+
+HardwareTimer *SendTimer = new HardwareTimer(Instance1);
+HardwareTimer *requestTimer = new HardwareTimer(Instance2);
+HardwareTimer *PWMFanTimer = new HardwareTimer(Instance3);
  
 void requestData() {
   if (doRequest){
     Serial3.write("A"); // Send A to request real time data
     doRequest = false;
+  }
+  // The PWM fan duty is only requested once in a second. This doesn't need to be that frequently updated.
+  if (rRequestCounter >= SerialUpdateRate){
+    Serial3.write("r");  // Send r to request PWM fan duty
+    Serial3.write(0xAA); // $tsCanId placeholder
+    Serial3.write(0x30); // Send output channels command 0x30
+    Serial3.write(121);  // LSB offset for receiving PWM fan duty.
+    Serial3.write(0);    // MSB offset for receiving PWM fan duty.
+    Serial3.write(1);    // LSB length for receiving PWM fan duty.
+    Serial3.write(0);    // MSB length for receiving PWM fan duty.
+    rRequestCounter = 0;
+  }
+  else {
+    rRequestCounter++;
   }
 }
 
@@ -234,6 +265,7 @@ void setup(){
   #endif
   
   doRequest = false;
+  rRequestCounter = 0;
   Can1.begin();
   Can1.setBaudRate(500000);
   Can1.setMBFilterProcessing( MB0, 0x153, 0x1FFFFFFF );
@@ -292,33 +324,28 @@ void setup(){
   ascMSG = false;
   radOutletTemp = 0;
   oilTemp = 0;
+  PWMfanDuty = 10; // minimum valid duty is 10%
 
-  // setup hardwaretimer to send data for instrument cluster in 50Hz pace
-#if defined(TIM1)
-  TIM_TypeDef *Instance1 = TIM1;
-#else
-  TIM_TypeDef *Instance1 = TIM2;
-#endif
-  TIM_TypeDef *Instance2 = TIM3;
-  HardwareTimer *SendTimer = new HardwareTimer(Instance1);
-  HardwareTimer *requestTimer = new HardwareTimer(Instance2);
+  // setup hardwaretimers
+  channel = STM_PIN_CHANNEL(pinmap_function(digitalPinToPinName(Fan_pin), PinMap_PWM));
   requestTimer->setOverflow(SerialUpdateRate, HERTZ_FORMAT);
-  SendTimer->setOverflow(50, HERTZ_FORMAT); // 50 Hz
+  SendTimer->setOverflow(ClusterUpdateRate, HERTZ_FORMAT);
 #if ( STM32_CORE_VERSION_MAJOR < 2 )
   SendTimer->attachInterrupt(1, SendData);
   SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
   requestTimer->attachInterrupt(1, requestData);
   requestTimer->setMode(1, TIMER_OUTPUT_COMPARE);
 #else //2.0 forward
-    requestTimer->attachInterrupt(requestData);
-    requestTimer->attachInterrupt(requestData);
+  requestTimer->attachInterrupt(requestData);
   SendTimer->attachInterrupt(SendData);
 #endif
   requestTimer->resume();
   SendTimer->resume();
-  
-  Serial.println ("Version date: 3.3.2023"); // To see from debug serial when is used code created.
+  PWMFanTimer->setPWM(channel, Fan_pin, PWMFanFrequency, 10); // 10% dutycycle for start. (min for the BMW fan)
+
+  Serial.println ("Version date: 13.3.2023"); // To see from debug serial when is used code created.
   doRequest = true; // all set. Start requesting data from speeduino
+  rRequestCounter = SerialUpdateRate;
 }
 
 #ifdef REV1_5
@@ -696,7 +723,7 @@ void HandleA()
     SpeedyResponse[i] = Serial3.read();
     }
   processData();                  // do the necessary processing for received data
-  displayData();                  // only required for debugging
+  //displayData();                  // only required for debugging
   doRequest = true;               // restart data reading
   oldtime = millis();             // zero the timeout
   SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
@@ -715,6 +742,29 @@ void HandleR()
   SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
 }
 
+void Handle_r()
+{
+  uint8_t tmp_duty;
+  Serial.println ("r ");
+  data_error = false;
+  if (Serial3.read() != 0x30){  // r-command always returns 0x30. Something is wrong if it doesn't.
+    data_error = true;
+  }
+  else {
+    tmp_duty = Serial3.read(); // read the fan duty.
+    tmp_duty = tmp_duty / 2;   // speeduino range is 0-200. Change it to 0-100
+    if (tmp_duty < 10){        // adjust the range to valid 10-90 for BMW fan
+      tmp_duty = 10;
+    }
+    else if (tmp_duty > 90){
+      tmp_duty = 90;
+    }
+    PWMfanDuty = tmp_duty;
+    PWMFanTimer->setPWM(channel, Fan_pin, PWMFanFrequency, PWMfanDuty); // set the fan duty
+  }
+  SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
+}
+
 void ReadSerial()
 {
   currentCommand = Serial3.read();
@@ -723,8 +773,11 @@ void ReadSerial()
     case 'A':  // Speeduino sends data in A-message
       SerialState = A_MESSAGE;
     break;
-    case 'R':  // Speeduino requests data in A-message
+    case 'R':  // Speeduino requests data in R-message
       SerialState = R_MESSAGE;
+    break;
+    case 'r':  // Speeduino sends the Fan PWM duty in data in r-message, because we requested it.
+      SerialState = PWM_MESSAGE;
     break;
     default:
       Serial.print ("Not an A or R message ");
@@ -744,6 +797,9 @@ void loop() {
       break;
     case R_MESSAGE:
       if (Serial3.available() >= 3) {  HandleR(); }  // read and process the R-message from serial3, when it's fully received.
+      break;
+    case PWM_MESSAGE:
+      if (Serial3.available() >= 2) {  Handle_r(); }  // read and process the r-message from serial3, when it's fully received.
       break;
     default:
       break;
