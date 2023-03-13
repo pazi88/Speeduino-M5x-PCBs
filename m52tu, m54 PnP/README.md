@@ -32,7 +32,7 @@ EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-
 - DISA valve is wired to the output pin 35, and it can be used by programmable outputs.
 - Exhaust CAM vanos solenoid is wired to output pin 37, and it can be controlled by VVT control.
 - Fan output pin is 36 and it's only wired to external connector fan output in the back of the ecu. The stock ecu connector fan output is controlled by bluepill in
-  PWM fashion to be able to control stock fan. Note! that PWM fan feature is not yet implemented in bluepill WF.
+  PWM fashion to be able to control stock fan.
 ### Rev 1.4 and older
 - Output pin 35 is wired to the electric thermostat. With help of programmable outputs the electric thermostat can be used to control engine temps.
   For exmaple make output activate when coolant is about 90°C and that should make the engine temps stay at 90°C instead of 100°C based on mechanical thermostat.
