@@ -17,18 +17,12 @@
   #include <MFL.h>
   #define pin_53  PA1  // Connected to Arduino Mega pin 53 (SS0 in schema)
   #define pin_49  PC15  // Connected to Arduino Mega pin 49 (SS1 in schema)
-#endif
   #define Fan_pin  PA15  // PWM fan output on ULN
   #define AC_pin  PB9  // AC compressor output on ULN
-#include "STM32_CAN.h"
-
-#ifdef ARDUINO_BLUEPILL_F103C8
-  HardwareSerial Serial3(USART3); // for some reason this isn't defined in arduino_core_stm32
-  #ifdef REV1_5
-    HardwareSerial Serial2(USART2); // for some reason this isn't defined in arduino_core_stm32
-    DS2 DS2(Serial2);
-  #endif
+  DS2 DS2(Serial2);
 #endif
+
+#include "STM32_CAN.h"
 
 #define NOTHING_RECEIVED        0
 #define R_MESSAGE               1
@@ -149,11 +143,12 @@ void requestData(HardwareTimer*){void requestData();}
 // define hardwaretimers
 TIM_TypeDef *Instance1 = TIM1;
 TIM_TypeDef *Instance2 = TIM3;
+#ifdef REV1_5
 TIM_TypeDef *Instance3 = (TIM_TypeDef *)pinmap_peripheral(digitalPinToPinName(Fan_pin), PinMap_PWM); // this uses TIM2 ch1
-
+HardwareTimer *PWMFanTimer = new HardwareTimer(Instance3);
+#endif
 HardwareTimer *SendTimer = new HardwareTimer(Instance1);
 HardwareTimer *requestTimer = new HardwareTimer(Instance2);
-HardwareTimer *PWMFanTimer = new HardwareTimer(Instance3);
  
 void requestData() {
   if (doRequest){
@@ -330,7 +325,6 @@ void setup(){
   PWMfanDuty = 10; // minimum valid duty is 10%
 
   // setup hardwaretimers
-  channel = STM_PIN_CHANNEL(pinmap_function(digitalPinToPinName(Fan_pin), PinMap_PWM));
   requestTimer->setOverflow(SerialUpdateRate, HERTZ_FORMAT);
   SendTimer->setOverflow(ClusterUpdateRate, HERTZ_FORMAT);
 #if ( STM32_CORE_VERSION_MAJOR < 2 )
@@ -344,9 +338,12 @@ void setup(){
 #endif
   requestTimer->resume();
   SendTimer->resume();
+#ifdef REV1_5
+  channel = STM_PIN_CHANNEL(pinmap_function(digitalPinToPinName(Fan_pin), PinMap_PWM));
   PWMFanTimer->setPWM(channel, Fan_pin, PWMFanFrequency, 10); // 10% dutycycle for start. (min for the BMW fan)
+#endif
 
-  Serial.println ("Version date: 13.3.2023"); // To see from debug serial when is used code created.
+  Serial.println ("Version date: 3.4.2023"); // To see from debug serial when is used code created.
   doRequest = true; // all set. Start requesting data from speeduino
   rRequestCounter = SerialUpdateRate;
 }
@@ -747,6 +744,7 @@ void HandleR()
 
 void Handle_r()
 {
+#ifdef REV1_5
   uint8_t tmp_duty;
   Serial.println ("r ");
   data_error = false;
@@ -766,6 +764,7 @@ void Handle_r()
     PWMFanTimer->setPWM(channel, Fan_pin, PWMFanFrequency, PWMfanDuty); // set the fan duty
   }
   SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
+#endif
 }
 
 void ReadSerial()
@@ -856,6 +855,11 @@ void loop() {
   digitalWrite(pin_53, MFL_CRUISE_MINUS);
   digitalWrite(pin_49, MFL_CRUISE_PLUS);
   // This doesn't have any real purpose, but lets light up cruise light in instrument cluster if cruise on/off button is pressed.
-  CAN_msg_MPG_CEL.buf[0] = (MFL_CRUISE_IO << 3);
+  if (MFL_CRUISE_IO) {
+    CAN_msg_MPG_CEL.buf[0] = 0x8;
+  }
+  else {
+    CAN_msg_MPG_CEL.buf[0] = 0x0;
+  }
 #endif
 }
