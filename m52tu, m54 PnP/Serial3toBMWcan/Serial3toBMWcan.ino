@@ -105,7 +105,6 @@ struct statuses {
 statuses currentStatus;
 
 static uint32_t oldtime=millis();   // for the timeout
-uint32_t channel; // timer channel for PWM fan
 uint8_t SpeedyResponse[100]; //The data buffer for the serial3 data. This is longer than needed, just in case
 uint8_t rpmLSB;   // Least significant byte for RPM message
 uint8_t rpmMSB;  // Most significant byte for RPM message
@@ -135,16 +134,12 @@ uint8_t MSGcounter; //this keeps track of which multiplexed info is sent in 0x32
 uint8_t radOutletTemp;
 uint8_t oilTemp;
 
-#if ((STM32_CORE_VERSION_MINOR<=8) & (STM32_CORE_VERSION_MAJOR==1))
-void SendData(HardwareTimer*){void SendData();}
-void requestData(HardwareTimer*){void requestData();}
-#endif
-
 // define hardwaretimers
 TIM_TypeDef *Instance1 = TIM1;
 TIM_TypeDef *Instance2 = TIM3;
 #ifdef REV1_5
-TIM_TypeDef *Instance3 = (TIM_TypeDef *)pinmap_peripheral(digitalPinToPinName(Fan_pin), PinMap_PWM); // this uses TIM2 ch1
+TIM_TypeDef *Instance3 = (TIM_TypeDef *)pinmap_peripheral(digitalPinToPinName(Fan_pin), PinMap_PWM);
+uint32_t channel = STM_PIN_CHANNEL(pinmap_function(digitalPinToPinName(Fan_pin), PinMap_PWM));
 HardwareTimer *PWMFanTimer = new HardwareTimer(Instance3);
 #endif
 HardwareTimer *SendTimer = new HardwareTimer(Instance1);
@@ -327,23 +322,18 @@ void setup(){
   // setup hardwaretimers
   requestTimer->setOverflow(SerialUpdateRate, HERTZ_FORMAT);
   SendTimer->setOverflow(ClusterUpdateRate, HERTZ_FORMAT);
-#if ( STM32_CORE_VERSION_MAJOR < 2 )
-  SendTimer->attachInterrupt(1, SendData);
-  SendTimer->setMode(1, TIMER_OUTPUT_COMPARE);
-  requestTimer->attachInterrupt(1, requestData);
-  requestTimer->setMode(1, TIMER_OUTPUT_COMPARE);
-#else //2.0 forward
   requestTimer->attachInterrupt(requestData);
   SendTimer->attachInterrupt(SendData);
-#endif
   requestTimer->resume();
   SendTimer->resume();
 #ifdef REV1_5
-  channel = STM_PIN_CHANNEL(pinmap_function(digitalPinToPinName(Fan_pin), PinMap_PWM));
-  PWMFanTimer->setPWM(channel, Fan_pin, PWMFanFrequency, 10); // 10% dutycycle for start. (min for the BMW fan)
+  PWMFanTimer->setMode(channel, TIMER_OUTPUT_COMPARE_PWM1, Fan_pin);
+  PWMFanTimer->setOverflow(PWMFanFrequency, HERTZ_FORMAT);
+  PWMFanTimer->setCaptureCompare(channel, 10, PERCENT_COMPARE_FORMAT); // 10%
+  PWMFanTimer->resume();
 #endif
 
-  Serial.println ("Version date: 3.4.2023"); // To see from debug serial when is used code created.
+  Serial.println ("Version date: 5.6.2023"); // To see from debug serial when is used code created.
   doRequest = true; // all set. Start requesting data from speeduino
   rRequestCounter = SerialUpdateRate;
 }
@@ -761,7 +751,8 @@ void Handle_r()
       tmp_duty = 90;
     }
     PWMfanDuty = tmp_duty;
-    PWMFanTimer->setPWM(channel, Fan_pin, PWMFanFrequency, PWMfanDuty); // set the fan duty
+    PWMFanTimer->setCaptureCompare(channel, tmp_duty, PERCENT_COMPARE_FORMAT); // 10%
+    PWMFanTimer->resume();
   }
   SerialState = NOTHING_RECEIVED; // all done. We set state for reading what's next message.
 #endif
