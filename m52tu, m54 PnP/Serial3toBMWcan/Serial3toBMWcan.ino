@@ -16,13 +16,20 @@
   #include "DS2.h"
   #include <MFL.h>
   #define pin_53  PA1  // Connected to Arduino Mega pin 53 (SS0 in schema)
-  #define pin_49  PC15  // Connected to Arduino Mega pin 49 (SS1 in schema)
+  #define pin_49  PC15  // Connected to Arduino Mega pin 49 (SS1 in schema), used for AC idle up
   #define Fan_pin  PA15  // PWM fan output on ULN
   #define AC_pin  PB9  // AC compressor output on ULN
   DS2 DS2(Serial2);
 #endif
 
 #include "STM32_CAN.h"
+
+//Bitsetting macros
+#define BIT_SET(a,b) ((a) |= (1U<<(b)))
+#define BIT_CLEAR(a,b) ((a) &= ~(1U<<(b)))
+#define BIT_CHECK(var,pos) !!((var) & (1U<<(pos)))
+#define BIT_TOGGLE(var,pos) ((var)^= 1UL << (pos))
+#define BIT_WRITE(var, pos, bitvalue) ((bitvalue) ? BIT_SET((var), (pos)) : bitClear((var), (pos)))
 
 #define NOTHING_RECEIVED        0
 #define R_MESSAGE               1
@@ -36,6 +43,10 @@
 #define SerialUpdateRate 30   // 30 Hz rate limit to update secondary serial data from speeduino
 #define PWMFanFrequency 100   // 100 Hz Frequency for the BMW PWM fan
 #define ClusterUpdateRate 50  // 50 Hz Frequency for the cars instrument cluster
+
+#define BIT_LV_REQ_TCO_L       5  // Request For Lowering Cooling Temp (c_tco_bol_ect)
+#define BIT_LV_ACCIN           6  // Air Conditioning Compressor Status (0=off, 1=on)
+#define BIT_LV_ACIN            7  // Air Conditioning Request (0=off, 1=on)
 
 static CAN_message_t CAN_msg_RPM;
 static CAN_message_t CAN_msg_CLT_TPS;
@@ -133,6 +144,9 @@ uint16_t VSS,VSS1,VSS2,VSS3,VSS4;
 uint8_t MSGcounter; //this keeps track of which multiplexed info is sent in 0x329 byte 0
 uint8_t radOutletTemp;
 uint8_t oilTemp;
+uint8_t acBitfield;
+uint8_t acBitfield2;
+uint8_t eFanBitfield;
 
 // define hardwaretimers
 TIM_TypeDef *Instance1 = TIM1;
@@ -255,6 +269,7 @@ void setup(){
   setupMFL();
   pinMode(pin_53, OUTPUT);
   pinMode(pin_49, OUTPUT);
+  pinMode(AC_pin, OUTPUT);
   #endif
   
   doRequest = false;
@@ -318,6 +333,9 @@ void setup(){
   radOutletTemp = 0;
   oilTemp = 0;
   PWMfanDuty = 10; // minimum valid duty is 10%
+  acBitfield = 0;
+  acBitfield2 = 0;
+  eFanBitfield = 0;
 
   // setup hardwaretimers
   requestTimer->setOverflow(SerialUpdateRate, HERTZ_FORMAT);
@@ -333,8 +351,11 @@ void setup(){
   PWMFanTimer->resume();
 #endif
 
-  Serial.println ("Version date: 5.6.2023"); // To see from debug serial when is used code created.
+  Serial.println ("Version date: 6.6.2023"); // To see from debug serial when is used code created.
   doRequest = true; // all set. Start requesting data from speeduino
+  digitalWrite(AC_pin, LOW);
+  digitalWrite(pin_49, LOW);
+  digitalWrite(pin_53, LOW);
   rRequestCounter = SerialUpdateRate;
 }
 
@@ -507,6 +528,9 @@ void readCanMessage() {
     case 0x615:
       ambientTemp = CAN_inMsg.buf[3];
       //Serial.print ("Outside temp: "); Serial.println (ambientTemp);
+      acBitfield = CAN_inMsg.buf[0];
+      acBitfield2 = CAN_inMsg.buf[4];
+      eFanBitfield = CAN_inMsg.buf[1];
     break;
     case  0x153: 
       ascMSG = true;
@@ -844,13 +868,22 @@ void loop() {
   updateCruise();
   // Set input pin states on Speeduino based on cruise buttons.
   digitalWrite(pin_53, MFL_CRUISE_MINUS);
-  digitalWrite(pin_49, MFL_CRUISE_PLUS);
   // This doesn't have any real purpose, but lets light up cruise light in instrument cluster if cruise on/off button is pressed.
   if (MFL_CRUISE_IO) {
     CAN_msg_MPG_CEL.buf[0] = 0x8;
   }
   else {
     CAN_msg_MPG_CEL.buf[0] = 0x0;
+  }
+  
+  // AC-stuff
+  if ( (BIT_CHECK(acBitfield, BIT_LV_ACCIN)) || (BIT_CHECK(acBitfield2, BIT_LV_ACCIN)) ) {
+    digitalWrite(AC_pin, HIGH); // turn on AC compressor
+    digitalWrite(pin_49, HIGH); // request higher idle from speeduino
+  }
+  else {
+    digitalWrite(AC_pin, LOW); // turn off AC compressor
+    digitalWrite(pin_49, LOW); // normal idle
   }
 #endif
 }
