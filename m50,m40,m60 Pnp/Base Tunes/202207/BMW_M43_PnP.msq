@@ -1134,7 +1134,7 @@
 <constant digits="0" name="iacStepHyster" units="Steps">5.0</constant>
 <constant name="fanInv">"No"</constant>
 <constant name="fanUnused">"Off"</constant>
-<constant name="fanPin">"46"</constant>
+<constant name="fanPin">"Board Default"</constant>
 <constant digits="0" name="fanSP" units="C">75.0</constant>
 <constant digits="0" name="fanHyster" units="C">2.0</constant>
 <constant digits="0" name="fanFreq" units="Hz">6.0</constant>
