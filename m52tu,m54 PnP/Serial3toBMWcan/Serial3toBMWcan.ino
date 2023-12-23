@@ -53,7 +53,7 @@ static CAN_message_t CAN_msg_CLT_TPS;
 static CAN_message_t CAN_msg_MPG_CEL;
 static CAN_message_t CAN_inMsg;
 
-STM32_CAN Can1( CAN1, DEF, RX_SIZE_64, TX_SIZE_16 );
+STM32_CAN Can1( CAN1, DEF, RX_SIZE_128, TX_SIZE_64 );
 
 // This struct gathers data read from speeduino. This is really just direct copy of what speeduino has internally
 struct statuses {
