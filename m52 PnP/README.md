@@ -66,5 +66,5 @@ Rev 2.2 board has possibility to install DIY-EFI TinyWB Module internally to the
 Link to the Wideband controller: https://diy-efi.co.uk/product/tinywb_module
 
 Tiny WB uses Bosch LSU 4.9 wideband sensor. Ecu uses 6-pin Molex Minifit Jr. Connecor for the wideband sensor with following pinout:
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,%20m54%20PnP/Pics/LSU49_connector.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,m54%20PnP/Pics/LSU49_connector.png?raw=true)
 
