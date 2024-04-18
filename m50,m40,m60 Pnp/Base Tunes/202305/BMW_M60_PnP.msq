@@ -442,17 +442,6 @@
 <pcVariable digits="0" name="ignLoadMax">255.0</pcVariable>
 <pcVariable digits="0" name="fuel2LoadMax">255.0</pcVariable>
 <pcVariable digits="0" name="ign2LoadMax">255.0</pcVariable>
-<pcVariable name="AUXin00Alias">Aux0</pcVariable>
-<pcVariable name="AUXin02Alias">VSS1</pcVariable>
-<pcVariable name="AUXin03Alias">VSS2</pcVariable>
-<pcVariable name="AUXin04Alias">VSS3</pcVariable>
-<pcVariable name="AUXin05Alias">VSS4</pcVariable>
-<pcVariable name="AUXin14Alias">Aux14</pcVariable>
-<pcVariable name="prgm_out00Alias">PrgmOut0</pcVariable>
-<pcVariable name="prgm_out01Alias">E-thermostat</pcVariable>
-<pcVariable name="prgm_out05Alias">PrgmOut5</pcVariable>
-<pcVariable name="prgm_out06Alias">PrgmOut6</pcVariable>
-<pcVariable name="prgm_out07Alias">PrgmOut7</pcVariable>
 </page>
 <page number="0" size="128">
 <constant digits="1" name="aseTaperTime" units="S">6.1</constant>
@@ -611,7 +600,7 @@
 <constant name="idleUpOutputInv">"No"</constant>
 <constant name="idleUpOutputPin">"Board Default"</constant>
 <constant digits="0" name="tachoSweepMaxRPM" units="RPM">1800.0</constant>
-<constant digits="1" name="primingDelay" units="S">0.5</constant>
+<constant digits="1" name="primingDelay" units="S">0.8</constant>
 <constant digits="1" name="iacTPSlimit" units="%">0.0</constant>
 <constant digits="0" name="iacRPMlimitHysteresis" units="RPM">600.0</constant>
 <constant digits="0" name="rtc_trim" units="ppm">0.0</constant>
@@ -1011,7 +1000,7 @@
 <constant name="useExtBaro">"No"</constant>
 <constant name="boostMode">"Simple"</constant>
 <constant name="boostPin">"Board Default"</constant>
-<constant name="tachoMode">"Fixed Duration"</constant>
+<constant name="tachoMode">"Match Dwell"</constant>
 <constant name="useEMAP">"No"</constant>
 <constant cols="1" digits="1" name="brvBins" rows="6" units="V">
          8.0 
@@ -1678,20 +1667,20 @@
       </constant>
 <constant name="hardRevMode">"Fixed"</constant>
 <constant cols="1" digits="0" name="coolantProtRPM" rows="6" units="RPM">
-         700.0 
-         700.0 
-         700.0 
-         700.0 
-         700.0 
-         700.0 
+         3000.0 
+         4000.0 
+         4500.0 
+         5000.0 
+         6000.0 
+         7000.0 
       </constant>
 <constant cols="1" digits="0" name="coolantProtTemp" rows="6" units="C">
-         -33.0 
-         -33.0 
-         -33.0 
-         -33.0 
-         -33.0 
-         -33.0 
+         -30.0 
+         -10.0 
+         0.0 
+         20.0 
+         40.0 
+         100.0 
       </constant>
 <constant cols="1" digits="0" name="unused179_184" rows="6">
          7.0 
@@ -1882,22 +1871,22 @@
 <constant name="oilPressureEnable">"Off"</constant>
 <constant name="oilPressureProtEnbl">"Off"</constant>
 <constant name="oilPressurePin">"A12"</constant>
-<constant name="fuelPressurePin">"A5"</constant>
-<constant digits="2" name="fuelPressureMin" units="BAR">-1.6054</constant>
-<constant digits="2" name="fuelPressureMax" units="BAR">15.0768</constant>
-<constant digits="2" name="oilPressureMin" units="BAR">5.4444</constant>
-<constant digits="2" name="oilPressureMax" units="BAR">8.376</constant>
+<constant name="fuelPressurePin">"A15"</constant>
+<constant digits="2" name="fuelPressureMin" units="BAR">0.0</constant>
+<constant digits="2" name="fuelPressureMax" units="BAR">9.9814</constant>
+<constant digits="2" name="oilPressureMin" units="BAR">0.0</constant>
+<constant digits="2" name="oilPressureMax" units="BAR">9.9814</constant>
 <constant cols="1" digits="2" name="oilPressureProtMins" rows="4" units="BAR">
-         6.631 
-         4.3974 
-         1.5356 
-         15.1466 
+         0.5584 
+         0.8376 
+         2.9316 
+         2.9316 
       </constant>
 <constant cols="1" digits="0" name="oilPressureProtRPM" rows="4" units="RPM">
-         12800.0 
-         7000.0 
-         4400.0 
-         18300.0 
+         800.0 
+         2100.0 
+         3500.0 
+         7100.0 
       </constant>
 <constant name="wmiEnabled">"Off"</constant>
 <constant name="wmiMode">"Simple"</constant>
@@ -2094,10 +2083,10 @@
          4000.0 
       </constant>
 <constant cols="1" digits="0" name="loadBinsDwell" rows="4" units="kPa">
-         510.0 
-         510.0 
-         510.0 
-         510.0 
+         20.0 
+         50.0 
+         100.0 
+         200.0 
       </constant>
 <constant cols="1" digits="0" name="UNALLOCATED_TOP_11" rows="8" units="RAW">
          0.0 
