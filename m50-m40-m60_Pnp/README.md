@@ -12,7 +12,7 @@ NOTE 2! BMW M4x/M50/M60 engines use VR-type crank sensors and most VR-type cam s
 VR-conditioner is required. PCBs are tested to work with VR-conditioners using MAX9926 VR-conditioner. Other types might work, but it's not guaranteed. The PCBs
 also allow to use Hall-type sensors. See file Jumper configurations.txt for more info.
 
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m50-m40-m60_Pnp/Pics/20190417_081123.jpg)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m50-m40-m60_Pnp/Pics/20190417_081123.jpg?raw=true)
 
 Some of the features that latest rev 2.2 PCB has:
 - Compatible with Speeduino FW (rev 1.x are directly compatible. Rev 2.x require small changes for 6 cyl sequential.)
@@ -66,5 +66,5 @@ Rev 2.2 board has possibility to install DIY-EFI TinyWB Module internally to the
 Link to the Wideband controller: https://diy-efi.co.uk/product/tinywb_module
 
 Tiny WB uses Bosch LSU 4.9 wideband sensor. Ecu uses 6-pin Molex Minifit Jr. Connecor for the wideband sensor with following pinout:
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m50-m40-m60_Pnp/Pics/LSU49_connector.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/LSU49_connector.png?raw=true)
 

@@ -1,5 +1,5 @@
 # Speeduino Compatible PCB for BMW M52
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP/Pics/20200605_084533.jpg?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52_PnP/Pics/20200605_084533.jpg?raw=true)
 
 This is folder for Speeduino Compatible PCBs that can be used with BMW M52 engine in PnP fashion. This PCB will replace the original board in ms41 ecu case.
 Just take apart the ecu case, remove original board, swap the 88-pin connector from original board to this new speeduino board and install back in case.
@@ -13,7 +13,7 @@ NOTE 2! 6-cyl sequential is something that does not work directly in M52 with st
 cam sensor or any generic hall sensor. For that there is JP1 jumper that allows the hall sensor to be powered from 12v or 5v. If you want to put this to 12v and replace
 Stock M52 Cam Sensor with M52TU / M54 intake cam sensor, it will work great. BUT DO NOT USE THAT JUMPER WITH STOCK M52 INTAKE CAM SENSOR.
 
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP/Pics/20200930_102248.jpg?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52_PnP/Pics/20200930_102248.jpg?raw=true)
 
 Some of the features that latest rev 2.2 PCB has:
 - Compatible with Speeduino FW (rev 1.x are directly compatible. Rev 2.x require small changes.)
@@ -66,5 +66,5 @@ Rev 2.2 board has possibility to install DIY-EFI TinyWB Module internally to the
 Link to the Wideband controller: https://diy-efi.co.uk/product/tinywb_module
 
 Tiny WB uses Bosch LSU 4.9 wideband sensor. Ecu uses 6-pin Molex Minifit Jr. Connecor for the wideband sensor with following pinout:
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP/Pics/LSU49_connector.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/LSU49_connector.png?raw=true)
 
