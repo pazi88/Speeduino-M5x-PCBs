@@ -12,7 +12,7 @@ NOTE 2! BMW M4x/M50/M60 engines use VR-type crank sensors and most VR-type cam s
 VR-conditioner is required. PCBs are tested to work with VR-conditioners using MAX9926 VR-conditioner. Other types might work, but it's not guaranteed. The PCBs
 also allow to use Hall-type sensors. See file Jumper configurations.txt for more info.
 
-![alt text](https://raw.githubusercontent.com/pazi88/Speeduino-M5x-PCBs/master/m50%2Cm40%2Cm60%20Pnp/Pics/20190417_081123.jpg)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m50-m40-m60_Pnp/Pics/20190417_081123.jpg)
 
 Some of the features that latest rev 2.2 PCB has:
 - Compatible with Speeduino FW (rev 1.x are directly compatible. Rev 2.x require small changes for 6 cyl sequential.)
@@ -47,8 +47,8 @@ The rev 1.x PCBs can use Speeduino FW without any changes. Just use Speeduino v0
 Recommended way is to use Speedyloader to upload the Firmware to mega https://wiki.speeduino.com/en/Installing_Firmware 
 
 Rev2.0 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential 202005 or later speeduino FW is needed with few customizations.
-To upload, use XLoader, instead of Speedyloader: https://www.hobbytronics.co.uk/arduino-xloader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
-Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m50%2Cm40%2Cm60%20Pnp#compiling-speeduino-code-by-yourself
+To upload, use XLoader, instead of Speedyloader: https://github.com/binaryupdates/xLoader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
+Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m50-m40-m60_Pnp#compiling-speeduino-code-by-yourself
 
 NOTE! 4/8 cyl engines or semi sequential injection on 6 cyl don't require custom FW in 2.x PCBs. It's only needed for 6-cyl sequential support.
 So even with 2.x PCB the speedyloder upload can be used for 4/8 cyl engines and 6 cyl semi sequential injection.
@@ -66,5 +66,5 @@ Rev 2.2 board has possibility to install DIY-EFI TinyWB Module internally to the
 Link to the Wideband controller: https://diy-efi.co.uk/product/tinywb_module
 
 Tiny WB uses Bosch LSU 4.9 wideband sensor. Ecu uses 6-pin Molex Minifit Jr. Connecor for the wideband sensor with following pinout:
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu,m54%20PnP/Pics/LSU49_connector.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m50-m40-m60_Pnp/Pics/LSU49_connector.png?raw=true)
 
