@@ -60,7 +60,7 @@ The rev1.0/1.1 PCBs can use Speeduino FW without any changes.
 Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware 
 
 Rev1.2 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential, speeduino FW needs few customizations.
-To upload use XLoader instead of Speedyloader: https://www.hobbytronics.co.uk/arduino-xloader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
+To upload use XLoader instead of Speedyloader: https://github.com/binaryupdates/xLoader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
 Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP#compiling-speeduino-code-by-yourself
 
 It's also recommended to change number of fuel outputs to 6 instead of 4 in speeduino.ini -file for Core4. But this isn't mandatory. It just gets rid of the possible
