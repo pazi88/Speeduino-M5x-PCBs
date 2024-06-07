@@ -1,5 +1,5 @@
 # Speeduino Compatible PCBs for BMW M52TU and M54 engines
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu-m54_PnP/Pics/rev12.jpg?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/rev12.jpg?raw=true)
 
 This is folder for Speeduino Compatible PCBs that can be used with BMW M52TU and M54 engine in PnP fashion. This PCB will replace the
 original board in ms42/ms43 ecu case. Just open the 4 bolts in the ecu case, remove original board and replace with this. Last step is
@@ -10,7 +10,7 @@ M52TU (ms42) has cable driven throttle as backup, so no changes needed in those 
 
 NOTE 2! OBD2 system is not supported in these boards, so if your country requires the car to pass OBD2 tests in MOT check, this board can't be used.
 
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu-m54_PnP/Pics/withcase.jpg?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/withcase.jpg?raw=true)
 
 Some of the features this PCB has:
 - Compatible with Speeduino FW (rev1.0/1.1 are directly compatible. Rev1.2/1.3 require small changes.)
@@ -61,7 +61,7 @@ Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://
 
 Rev1.2 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential, speeduino FW needs few customizations.
 To upload use XLoader instead of Speedyloader: https://www.hobbytronics.co.uk/arduino-xloader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
-Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu-m54_PnP#compiling-speeduino-code-by-yourself
+Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP#compiling-speeduino-code-by-yourself
 
 It's also recommended to change number of fuel outputs to 6 instead of 4 in speeduino.ini -file for Core4. But this isn't mandatory. It just gets rid of the possible
 warnings in TS and allows to use HW test mode for injectors 5 and 6.
@@ -91,7 +91,7 @@ Steps to compile/upload code to the bluepill:
 - Download/clone this repository to your PC and open this folder in Platform IO (so you have the platformio.ini -file there)
 - Use the Platform IO to edit the COM port numbers in platformio.ini to match COM port number for the FTDI breakout board.
 - Click "Upload" and PIO should compile and upload the code to the bluepill (remember to set Boot0 jumper for the upload)
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu-m54_PnP/Pics/PIO.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/PIO.png?raw=true)
 
 ## USB drivers for Core4
 
@@ -102,18 +102,18 @@ But if you are having problems with the USB drivers, the Core4 isn't detected et
 
 The bluepill controlling the CAN-bus to car can also be used to read data back from CAN-bus to speeduino. To do this, enable Secondary Serial and Internal Canbus in TS.
 Then go to "External Auxillary Input Channel Configuration" -menu. Following data is available, but it's not recommended to have all enabled. Only the ones that are really needed.
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu-m54_PnP/Pics/Aux_in.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/Aux_in.png?raw=true)
 Note! This CAN-bus reading is fairly new addition in BluePill FW and might require updating it.
 
 ## Replacing original DBW throttle body
 
 Because this board doesn't have DBW ability the original throttle body needs to be replaced with cable driven one in M54. M50/M52 throttle bodies
 are easy replacement and adapters can be bought if needed. The DBW wiring needs to be wired to M50/M52 TPS according to this diagram:
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu-m54_PnP/Pics/M54-M50TPS.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/M54-M50TPS.png?raw=true)
 
 M52TU has cable drive semi-DBW system that can be used with this board without modifications. But if you want to replace the original throttle body
 with M50/M52 one, follow this wiring diagram to adapt to M50/M52 TPS wiring:
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu-m54_PnP/Pics/M52TU-M50TPS.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/M52TU-M50TPS.png?raw=true)
 
 Wire color abbreviations:
 - braun BR = brown
@@ -131,4 +131,4 @@ Wire color abbreviations:
 ## Bosch LSU 4.9 Wideband sensor wiring
 
 If internal Spartan 2 OEM or TinyWB wideband controller is used, it has 6-pin Molex Minifit Jr. Connecor with following pinout:
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52tu-m54_PnP/Pics/LSU49_connector.png?raw=true)
+![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/LSU49_connector.png?raw=true)
