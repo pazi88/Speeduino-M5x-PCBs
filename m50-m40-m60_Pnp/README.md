@@ -45,12 +45,14 @@ EasyEda project link for the PCB: https://oshwlab.com/pazi88/m50speeduino_copy_c
 
 The rev 1.x PCBs can use normal Speeduino FW without any changes. Just use Speeduino v0.4 board configuration in TS.
 Recommended way is to use SpeedyLoader to upload the Firmware to mega https://wiki.speeduino.com/en/Installing_Firmware
+
 SpeedyLoader download: https://speeduino.com/home/support/downloads
 
 Rev2.0 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential, custom FW is needed. This can be also uploaded with SpeedyLoader, but minimum
 of 1.6.0 version is required. First download pre-compiled custom FW from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
 Then on SpeedyLoader select "Use Local Firmware"
 ![alt text](https://github.com/pazi88/STM32_mega/blob/main/Pics/Speedyloader1.png?raw=true)
+
 And upload the FW through correct COM-port.
 
 NOTE! 4/8 cyl engines or semi sequential injection on 6 cyl don't require custom FW in 2.x PCBs. It's only needed for 6-cyl sequential support.

@@ -57,13 +57,15 @@ EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-
 ## Speeduino code for Core4
 
 The rev1.0/1.1 PCBs can use Speeduino FW without any changes.
-Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware 
+Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware
+
 Speedyloader download: https://speeduino.com/home/support/downloads
 
 Rev1.2 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential, custom FW is needed. This can be also uploaded with speedyloader, but minimum
 of 1.6.0 version is required. First download pre-compiled custom FW from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
 Then on Speedyloader select "Use Local Firmware"
 ![alt text](https://github.com/pazi88/STM32_mega/blob/main/Pics/Speedyloader1.png?raw=true)
+
 And upload the FW through correct COM-port.
 
 It's also recommended to change number of fuel outputs to 6 instead of 4 in speeduino.ini -file for Core4. But this isn't mandatory. It just gets rid of the possible
