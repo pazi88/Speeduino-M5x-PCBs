@@ -47,11 +47,14 @@ EasyEda project link for the PCB: https://easyeda.com/pazi88/speeduino-v0-4-3-co
 ## Speeduino code for Arduino mega
 
 The rev 1.x PCBs can use Speeduino FW without any changes. Just use Speeduino v0.4 board configuration in TS.
-Recommended way is to use Speedyloader to upload the Firmware to mega https://wiki.speeduino.com/en/Installing_Firmware 
+Recommended way is to use SpeedyLoader to upload the Firmware to mega https://wiki.speeduino.com/en/Installing_Firmware
+SpeedyLoader download: https://speeduino.com/home/support/downloads
 
-Rev2.0 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential 202005 or later speeduino FW is needed with few customizations.
-To upload, use XLoader, instead of Speedyloader: https://github.com/binaryupdates/xLoader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
-Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP#compiling-speeduino-code-by-yourself
+Rev2.0 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential, custom FW is needed. This can be also uploaded with SpeedyLoader, but minimum
+of 1.6.0 version is required. First download pre-compiled custom FW from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
+Then on SpeedyLoader select "Use Local Firmware"
+![alt text](https://github.com/pazi88/STM32_mega/blob/main/Pics/Speedyloader1.png?raw=true)
+And upload the FW through correct COM-port.
 
 ### Compiling speeduino code by yourself
 

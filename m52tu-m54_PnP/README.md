@@ -58,10 +58,13 @@ EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-
 
 The rev1.0/1.1 PCBs can use Speeduino FW without any changes.
 Recommended way is to use Speedyloader to upload the Firmware to CORE4: https://wiki.speeduino.com/en/Installing_Firmware 
+Speedyloader download: https://speeduino.com/home/support/downloads
 
-Rev1.2 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential, speeduino FW needs few customizations.
-To upload use XLoader instead of Speedyloader: https://github.com/binaryupdates/xLoader Custom FW hex can be found from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
-Remember to select ATMEGA2560 as device. Also manual compiling and upload is option. To do that, check: https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP#compiling-speeduino-code-by-yourself
+Rev1.2 onwards allows 6-cyl sequential injection and in order to run 6 cyl sequential, custom FW is needed. This can be also uploaded with speedyloader, but minimum
+of 1.6.0 version is required. First download pre-compiled custom FW from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
+Then on Speedyloader select "Use Local Firmware"
+![alt text](https://github.com/pazi88/STM32_mega/blob/main/Pics/Speedyloader1.png?raw=true)
+And upload the FW through correct COM-port.
 
 It's also recommended to change number of fuel outputs to 6 instead of 4 in speeduino.ini -file for Core4. But this isn't mandatory. It just gets rid of the possible
 warnings in TS and allows to use HW test mode for injectors 5 and 6.
