@@ -144,7 +144,7 @@ If internal Spartan 2 OEM or TinyWB wideband controller is used, it has 6-pin Mo
 
 ## Locking out the M52TU DBW
 
-The M52TU has the cable driven DBW system that works with this speeduino as is. But unfortunately the cable is connected to the thorttle flap with quite flimsy spring.
+The M52TU has the cable driven DBW system that works with this speeduino as is. But unfortunately the cable input is connected to the thorttle flap with quite flimsy spring.
 Which can lead to problems in boosted use. So it's recommended to lock the cable input to the throttle flap, with ie. small screw.
 
 ![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/20211114_154335.jpg?raw=true)
