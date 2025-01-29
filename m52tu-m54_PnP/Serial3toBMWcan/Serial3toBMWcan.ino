@@ -351,7 +351,7 @@ void setup(){
   PWMFanTimer->resume();
 #endif
 
-  Serial.println ("Version date: 6.6.2023"); // To see from debug serial when is used code created.
+  Serial.println ("Version date: 28.1.2025"); // To see from debug serial when is used code created.
   doRequest = true; // all set. Start requesting data from speeduino
   digitalWrite(AC_pin, LOW);
   digitalWrite(pin_49, LOW);
