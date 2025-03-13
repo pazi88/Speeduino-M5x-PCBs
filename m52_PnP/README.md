@@ -67,11 +67,11 @@ Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS 
 
 ## ECU rear connector pinout
 
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP/Pics/20.png?raw=true)
+![alt text](https://raw.githubusercontent.com/pazi88/Speeduino-M5x-PCBs/refs/heads/master/m52_PnP/Pics/20.png)
 
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP/Pics/20-21.png?raw=true)
+![alt text](https://raw.githubusercontent.com/pazi88/Speeduino-M5x-PCBs/refs/heads/master/m52_PnP/Pics/21-23.png)
 
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP/Pics/30.png?raw=true)
+![alt text](https://raw.githubusercontent.com/pazi88/Speeduino-M5x-PCBs/refs/heads/master/m52_PnP/Pics/30.png)
 
 ## DIY-EFI TinyWB Module
 
