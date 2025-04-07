@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <msq xmlns="http://www.msefi.com/:msq">
-<bibliography author="TunerStudio MS Lite! 3.1.08 - EFI Analytics, Inc." tuneComment="" writeDate="Thu Apr 18 14:32:05 EEST 2024"/>
-<versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2023.05" nPages="15" signature="speeduino 202305"/>
+<bibliography author="TunerStudio MS Lite! 3.1.08 - EFI Analytics, Inc." tuneComment="" writeDate="Mon Apr 07 14:00:38 EEST 2025"/>
+<versionInfo fileFormat="5.0" firmwareInfo="Speeduino+2025.01.1" nPages="15" signature="speeduino 202501"/>
 <page>
 <pcVariable name="tsCanId">"0"</pcVariable>
 <pcVariable name="tsCanId">"CAN ID 0"</pcVariable>
@@ -437,7 +437,6 @@
          100.0 
          100.0 
       </pcVariable>
-<pcVariable name="prgm_out_selection">"2"</pcVariable>
 <pcVariable digits="0" name="fuelLoadMax">255.0</pcVariable>
 <pcVariable digits="0" name="ignLoadMax">255.0</pcVariable>
 <pcVariable digits="0" name="fuel2LoadMax">255.0</pcVariable>
@@ -606,10 +605,8 @@
 <constant digits="0" name="rtc_trim" units="ppm">0.0</constant>
 <constant digits="0" name="idleAdvVss" units="km/h">0.0</constant>
 <constant digits="0" name="mapSwitchPoint" units="RPM">1400.0</constant>
-<constant name="canBMWCluster">"Off"</constant>
-<constant name="canVAGCluster">"Off"</constant>
-<constant name="enable1Cluster">"Off"</constant>
-<constant name="enable2Cluster">"Off"</constant>
+<constant name="unused0_126">"0"</constant>
+<constant name="canWBO">"Off"</constant>
 <constant name="vssAuxCh">"Aux0"</constant>
 <constant digits="0" name="decelAmount" units="%">95.0</constant>
 </page>
@@ -728,7 +725,7 @@
 <page number="3" size="128">
 <constant digits="0" name="TrigAng" units="Deg">36.0</constant>
 <constant digits="0" name="FixAng" units="Deg">0.0</constant>
-<constant digits="0" name="CrankAng" units="Deg">18.0</constant>
+<constant digits="0" name="CrankAng" units="Deg">16.0</constant>
 <constant digits="0" name="TrigAngMul">0.0</constant>
 <constant name="TrigEdge">"FALLING"</constant>
 <constant name="TrigSpeed">"Crank Speed"</constant>
@@ -891,6 +888,7 @@
 <constant name="vvt2PWMdir">"Advance"</constant>
 <constant name="inj4CylPairing">"1+4 &amp; 2+3"</constant>
 <constant name="dwellErrCorrect">"Off"</constant>
+<constant name="CANBroadcastProt">"Off"</constant>
 <constant name="unusedBits4_123">"0"</constant>
 <constant digits="0" name="ANGLEFILTER_VVT" units="%">4.0</constant>
 <constant digits="0" name="FILTER_FLEX" units="%">0.0</constant>
@@ -994,7 +992,7 @@
 <constant digits="1" name="ego_max_afr" units="AFR">19.0</constant>
 <constant digits="3" name="ego_max_lambda" units="Lambda">1.292517</constant>
 <constant digits="0" name="ego_sdelay" units="sec">15.0</constant>
-<constant digits="0" name="egoRPM" units="rpm">1200.0</constant>
+<constant digits="0" name="egoRPM" units="rpm">700.0</constant>
 <constant digits="1" name="egoTPSMax" units="%">70.0</constant>
 <constant name="vvt1Pin">"Board Default"</constant>
 <constant name="useExtBaro">"No"</constant>
@@ -1049,7 +1047,7 @@
 <constant digits="0" name="lnchSoftLim" units="rpm">3500.0</constant>
 <constant digits="0" name="lnchRetard" units="deg">15.0</constant>
 <constant digits="0" name="lnchHardLim" units="rpm">4000.0</constant>
-<constant digits="0" name="lnchFuelAdd" units="%">50.0</constant>
+<constant digits="0" name="lnchFuelAdd" units="%">15.0</constant>
 <constant digits="2" name="idleKP" units="%">2.0</constant>
 <constant digits="2" name="idleKI" units="%">0.0</constant>
 <constant digits="3" name="idleKD" units="%">0.99968</constant>
@@ -1064,7 +1062,7 @@
 <constant name="baroPin">"A5"</constant>
 <constant digits="0" name="flatSSoftWin" units="rpm">400.0</constant>
 <constant digits="0" name="flatSRetard" units="deg">5.0</constant>
-<constant digits="0" name="flatSArm" units="rpm">2000.0</constant>
+<constant digits="0" name="flatSArm" units="rpm">4500.0</constant>
 <constant cols="1" digits="0" name="iacCLValues" rows="10" units="RPM">
          1000.0 
          1000.0 
@@ -1441,6 +1439,7 @@
 <constant name="enable_secondarySerial">"Disable"</constant>
 <constant name="intcan_available">"Disable"</constant>
 <constant name="enable_intcan">"Disable"</constant>
+<constant name="secondarySerialProtocol">"Generic (Fixed List)".</constant>
 <constant name="caninput_sel0a">"Off"</constant>
 <constant name="caninput_sel0b">"Off"</constant>
 <constant name="caninput_sel0extsourcea">"Via Secondary Serial"</constant>
@@ -1537,22 +1536,22 @@
 <constant name="caninput_source_can_address13">"0x100"</constant>
 <constant name="caninput_source_can_address14">"0x100"</constant>
 <constant name="caninput_source_can_address15">"0x6FD"</constant>
-<constant name="caninput_source_start_byte0">"7"</constant>
-<constant name="caninput_source_start_byte1">"7"</constant>
-<constant name="caninput_source_start_byte2">"7"</constant>
-<constant name="caninput_source_start_byte3">"7"</constant>
-<constant name="caninput_source_start_byte4">"7"</constant>
-<constant name="caninput_source_start_byte5">"7"</constant>
-<constant name="caninput_source_start_byte6">"7"</constant>
-<constant name="caninput_source_start_byte7">"7"</constant>
-<constant name="caninput_source_start_byte8">"7"</constant>
-<constant name="caninput_source_start_byte9">"7"</constant>
-<constant name="caninput_source_start_byte10">"7"</constant>
-<constant name="caninput_source_start_byte11">"7"</constant>
-<constant name="caninput_source_start_byte12">"7"</constant>
-<constant name="caninput_source_start_byte13">"7"</constant>
-<constant name="caninput_source_start_byte14">"7"</constant>
-<constant name="caninput_source_start_byte15">"7"</constant>
+<constant digits="0" name="caninput_source_start_byte0">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte1">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte2">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte3">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte4">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte5">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte6">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte7">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte8">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte9">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte10">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte11">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte12">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte13">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte14">0.0</constant>
+<constant digits="0" name="caninput_source_start_byte15">0.0</constant>
 <constant name="caninput_source_num_bytes0">"2"</constant>
 <constant name="caninput_source_num_bytes1">"2"</constant>
 <constant name="caninput_source_num_bytes2">"2"</constant>
@@ -1608,8 +1607,8 @@
 <constant name="canoutput_param_num_bytes7">"1"</constant>
 <constant digits="0" name="unused10_110">255.0</constant>
 <constant digits="0" name="unused10_111">255.0</constant>
-<constant digits="0" name="unused10_112">255.0</constant>
-<constant digits="0" name="unused10_113">255.0</constant>
+<constant digits="0" name="egoMAPMax" units="kPa">100.0</constant>
+<constant digits="0" name="egoMAPMin" units="kPa">30.0</constant>
 <constant name="speeduino_tsCanId">"CAN ID 0"</constant>
 <constant name="true_address">"0x101"</constant>
 <constant name="realtime_base_address">"0x201"</constant>
@@ -1682,14 +1681,13 @@
          40.0 
          100.0 
       </constant>
-<constant cols="1" digits="0" name="unused179_184" rows="6">
-         7.0 
-         7.0 
-         7.0 
-         7.0 
-         7.0 
-         7.0 
-      </constant>
+<constant digits="0" name="unused10_179">0.0</constant>
+<constant digits="1" name="dfcoTaperTime" units="S">0.0</constant>
+<constant digits="0" name="dfcoTaperFuel" units="%">0.0</constant>
+<constant digits="0" name="dfcoTaperAdvance" units="deg">0.0</constant>
+<constant name="dfcoTaperEnable">"Off"</constant>
+<constant name="unused10_182">""</constant>
+<constant digits="0" name="unused10_184">0.0</constant>
 <constant name="afrProtectEnabled">"Off"</constant>
 <constant digits="0" name="afrProtectMAP" units="kPa">180.0</constant>
 <constant digits="0" name="afrProtectRPM" units="RPM">4000.0</constant>
@@ -1736,11 +1734,10 @@
          140.0 
          200.0 
       </constant>
-<constant digits="0" name="boostSens">2047.0</constant>
 <constant digits="0" name="boostIntv" units="ms">20.0</constant>
+<constant digits="0" name="boostSens">2047.0</constant>
 <constant digits="0" name="stagedInjSizePri" units="cc/min">200.0</constant>
 <constant digits="0" name="stagedInjSizeSec" units="cc/min">600.0</constant>
-<constant digits="1" name="lnchCtrlTPS" units="%TPS">127.0</constant>
 <constant cols="1" digits="0" name="flexBoostBins" rows="6" units="%">
          0.0 
          20.0 
@@ -1789,6 +1786,7 @@
          9.0 
          10.0 
       </constant>
+<constant digits="1" name="lnchCtrlTPS" units="%TPS">70.0</constant>
 <constant name="n2o_enable">"Off"</constant>
 <constant name="n2o_arming_pin">"34"</constant>
 <constant digits="0" name="n2o_minCLT" units="C">20.0</constant>
@@ -1811,16 +1809,16 @@
 <constant digits="1" name="n2o_stage2_adderMin" units="ms">3.0</constant>
 <constant digits="1" name="n2o_stage2_adderMax" units="ms">1.5</constant>
 <constant digits="0" name="n2o_stage2_retard" units="Deg">5.0</constant>
-<constant name="knock_mode">"Analog"</constant>
-<constant name="knock_pin">"3"</constant>
+<constant name="knock_mode">"Off"</constant>
+<constant name="knock_pin">"A12"</constant>
 <constant name="knock_trigger">"LOW"</constant>
 <constant name="knock_pullup">"Off"</constant>
-<constant name="knock_limiterDisable">"No"</constant>
-<constant name="knock_unused">"3"</constant>
+<constant name="knock_unused1">"No"</constant>
+<constant name="knock_unused2">"3"</constant>
 <constant name="knock_count">"3"</constant>
-<constant digits="1" name="knock_threshold" units="Volts">7.5</constant>
-<constant digits="0" name="knock_maxMAP" units="kPa">100.0</constant>
-<constant digits="0" name="knock_maxRPM" units="RPM">1000.0</constant>
+<constant digits="2" name="knock_threshold" units="Volts">2.4892</constant>
+<constant digits="0" name="knock_maxMAP" units="kPa">250.0</constant>
+<constant digits="0" name="knock_maxRPM" units="RPM">6500.0</constant>
 <constant cols="1" digits="0" name="knock_window_rpms" rows="6" units="RPM">
          2000.0 
          3000.0 
@@ -1848,10 +1846,10 @@
 <constant digits="0" name="knock_maxRetard" units="Deg">3.0</constant>
 <constant digits="0" name="knock_firstStep" units="Deg">1.0</constant>
 <constant digits="0" name="knock_stepSize" units="Deg">2.0</constant>
-<constant digits="1" name="knock_stepTime" units="Sec">2.0</constant>
+<constant digits="0" name="knock_stepTime" units="ms">2.0</constant>
 <constant digits="1" name="knock_duration" units="Sec">0.2</constant>
-<constant digits="1" name="knock_recoveryStepTime" units="Sec">0.1</constant>
-<constant digits="0" name="knock_recoveryStep" units="Deg">0.0</constant>
+<constant digits="1" name="knock_recoveryStepTime" units="Sec">0.5</constant>
+<constant digits="0" name="knock_recoveryStep" units="Deg">1.0</constant>
 <constant name="fuel2Algorithm">"MAP"</constant>
 <constant name="fuel2Mode">"Off"</constant>
 <constant name="fuel2SwitchVariable">"MAP"</constant>
@@ -1870,17 +1868,17 @@
 <constant name="fuelPressureEnable">"Off"</constant>
 <constant name="oilPressureEnable">"Off"</constant>
 <constant name="oilPressureProtEnbl">"Off"</constant>
-<constant name="oilPressurePin">"A12"</constant>
-<constant name="fuelPressurePin">"A15"</constant>
+<constant name="oilPressurePin">"A7"</constant>
+<constant name="fuelPressurePin">"A6"</constant>
 <constant digits="2" name="fuelPressureMin" units="BAR">0.0</constant>
 <constant digits="2" name="fuelPressureMax" units="BAR">9.9814</constant>
 <constant digits="2" name="oilPressureMin" units="BAR">0.0</constant>
 <constant digits="2" name="oilPressureMax" units="BAR">9.9814</constant>
 <constant cols="1" digits="2" name="oilPressureProtMins" rows="4" units="BAR">
-         0.5584 
-         0.8376 
-         2.9316 
-         2.9316 
+         0.4188 
+         0.9772 
+         3.0014 
+         3.0014 
       </constant>
 <constant cols="1" digits="0" name="oilPressureProtRPM" rows="4" units="RPM">
          800.0 
@@ -1949,9 +1947,7 @@
 <constant name="spark2InputPolarity">"LOW"</constant>
 <constant name="spark2InputPullup">"No"</constant>
 <constant digits="1" name="oilPressureProtTime" units="seconds">2.0</constant>
-<constant digits="0" name="unused11_190_191" units="RPM">
-         0.0 
-      </constant>
+<constant digits="0" name="lnchCtrlVss" units="KPh">0.0</constant>
 </page>
 <page number="10" size="288">
 <constant cols="16" digits="0" name="veTable2" rows="16" units="%">
@@ -2010,7 +2006,7 @@
       </constant>
 </page>
 <page number="11" size="192">
-<constant cols="8" digits="0" name="wmiTable" rows="8" units="%">
+<constant cols="8" digits="1" name="wmiTable" rows="8" units="%">
          0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 
          0.0 0.0 0.0 0.0 0.0 1.0 3.0 4.0 
          0.0 0.0 0.0 0.0 0.0 4.0 8.0 13.0 
@@ -2271,10 +2267,8 @@
 <constant digits="2" name="onboard_log_tr4_thr_on" units="V">25.5</constant>
 <constant digits="2" name="onboard_log_tr4_thr_off" units="V">25.5</constant>
 <constant name="unused13_125_2">"tab"</constant>
-<constant cols="1" digits="0" name="unused12_125_127" rows="2" units="%">
-         255.0 
-         255.0 
-      </constant>
+<constant digits="0" name="hwTestIgnDuration" units="ms">6.0</constant>
+<constant digits="0" name="hwTestInjDuration" units="ms">6.0</constant>
 </page>
 <page number="13" size="288">
 <constant cols="16" digits="0" name="advTable2" rows="16" units="deg">
@@ -2363,12 +2357,12 @@
          190.0 
          200.0 
       </constant>
-<constant name="boostControlEnable">"Baro"</constant>
+<constant name="boostControlEnable">"Fixed"</constant>
 <constant name="unused15_1_1">"False"</constant>
 <constant name="unused15_1_2">"False"</constant>
 <constant name="unused15_1_3">"False"</constant>
 <constant digits="0" name="boostDCWhenDisabled" units="%">0.0</constant>
-<constant digits="0" name="boostControlEnableThreshold" units="kpa">255.0</constant>
+<constant digits="0" name="boostControlEnableThreshold" units="kpa">95.0</constant>
 <constant name="airConEnable">"Off"</constant>
 <constant name="airConCompPol">"Inverted"</constant>
 <constant name="airConReqPol">"Inverted"</constant>
@@ -2393,171 +2387,174 @@
 <constant name="airConUnused4">"3"</constant>
 <constant digits="0" name="airConIdleUpRPMAdder" units="Added Target RPM">100.0</constant>
 <constant digits="1" name="airConPwmFanMinDuty" units="%">40.0</constant>
-<constant cols="1" digits="0" name="Unused15_98_255" rows="158" units="%">
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
-         255.0 
+<constant cols="1" digits="0" name="rollingProtRPMDelta" rows="4" units="RPM">
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+      </constant>
+<constant cols="1" digits="0" name="rollingProtCutPercent" rows="4" units="%">
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+      </constant>
+<constant cols="1" digits="0" name="Unused15_106_255" rows="150" units="%">
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
+         0.0 
       </constant>
 </page>
 <settings Comment="These setting are only used if this msq is opened without a project.">
 <setting name="pressure_bar" value="pressure_bar"/>
 <setting name="enablehardware_test" value="enablehardware_test"/>
-<setting name="CAN_COMMANDS_OFF" value="CAN_COMMANDS_OFF"/>
 <setting name="CELSIUS" value="CELSIUS"/>
 <setting name="resetcontrol_standard" value="resetcontrol_standard"/>
 <setting name="AFR" value="AFR"/>
