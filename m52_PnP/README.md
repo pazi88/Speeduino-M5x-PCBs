@@ -15,16 +15,16 @@ Stock M52 Cam Sensor with M52TU / M54 intake cam sensor, it will work great. BUT
 
 ![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52_PnP/Pics/20200930_102248.jpg?raw=true)
 
-Some of the features that latest rev 2.2 PCB has:
+Some of the features that latest rev 3.1 PCB has:
 - Compatible with Speeduino FW (rev 1.x are directly compatible. Rev 2.x require small changes.)
-- 6-cyl sequential fuel in rev 2.x
+- 6-cyl sequential fuel
 - Features 16-pin external connector for following things:
     - Launch control input
     - Boost solenoid output
-    - Fan relay output (also goes to engine harness)
+    - Fan relay output
     - Wideband lambda sensor signal input
     - Flex fuel sensor input
-    - 3x spare relay output
+    - 3x spare I/O
     - 3x spare analog/digital inputs with optional bias resistors (for extra temp sensors)
     - Serial 3 Rx and Tx pins
     - +5v
@@ -75,7 +75,7 @@ Before compiling, change number of INJ_CHANNELS to 6 and number of IGN_CHANNELS 
 
 ## DIY-EFI TinyWB Module
 
-Rev 2.2 board has possibility to install DIY-EFI TinyWB Module internally to the ecu.
+Rev 2.2 and newer boards have possibility to install DIY-EFI TinyWB Module internally to the ecu.
 Link to the Wideband controller: https://diy-efi.co.uk/product/tinywb_module
 
 Tiny WB uses Bosch LSU 4.9 wideband sensor. Ecu uses 6-pin Molex Minifit Jr. Connecor for the wideband sensor with following pinout:
