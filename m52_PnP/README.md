@@ -6,7 +6,6 @@ Just take apart the ecu case, remove original board, swap the 88-pin connector f
 Last step is to carve some openings for the extra connectors and the ecu can be plugged into car.
 
 > [!NOTE]  
-
 > This PCB supports 6-cyl sequential injection and ignition. Only sequential injection is available with arduino mega. And it requires few modifications on FW.
 > See "[Speeduino code for Arduino mega](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP#speeduino-code-for-arduino-mega)" -section for instructions. If you don't want to run sequential, just select semi-sequential injection and wasted COP ignition in TS.
 
@@ -14,8 +13,7 @@ Last step is to carve some openings for the extra connectors and the ecu can be 
 > 6-cyl sequential is something that does not work directly in M52 with stock sensors. Instead of original m52 cam sensor, you can run M52tu / m54 intake 
 > cam sensor or any generic hall sensor. For that there is JP1 jumper that allows the hall sensor to be powered from 12v or 5v. If you want to put this to 12v and replace
 > Stock M52 Cam Sensor with M52TU / M54 intake cam sensor (BMW part: 12147539165), it will work great. BUT DO NOT USE THAT JUMPER WITH STOCK M52 INTAKE CAM SENSOR.
-
-![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52_PnP/Pics/20200930_102248.jpg?raw=true)
+> ![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52_PnP/Pics/20200930_102248.jpg?raw=true)
 
 Some of the features that latest rev 3.1 PCB has:
 - Compatible with Speeduino FW (rev 1.x are directly compatible. Rev 2.x require small changes.)
@@ -55,6 +53,7 @@ SpeedyLoader download: https://speeduino.com/home/support/downloads
 
 > [!IMPORTANT]  
 > Rev2.0 onwards allows 6-cyl sequential injection and in order use these boards, custom FW is needed.
+
 This can be also uploaded with SpeedyLoader, but minimum
 of 1.6.0 version is required. First download pre-compiled custom FW from here: https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/6-cyl%20firmware%20files
 Then on SpeedyLoader select "Use Local Firmware"
