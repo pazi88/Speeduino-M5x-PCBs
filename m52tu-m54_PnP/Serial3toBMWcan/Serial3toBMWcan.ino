@@ -142,6 +142,7 @@ uint8_t SerialState,canin_channel,currentCommand;
 uint16_t CanAddress,runningClock;
 uint16_t VSS,VSS1,VSS2,VSS3,VSS4;
 uint8_t MSGcounter; //this keeps track of which multiplexed info is sent in 0x329 byte 0
+uint8_t multiplex;
 uint8_t radOutletTemp;
 uint8_t oilTemp;
 uint8_t acBitfield;
@@ -195,33 +196,6 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
   if ( Can1.write(CAN_msg_RPM) ){
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN)); // Just to see with internal led that CAN messages are being sent
   }
-  //Send CLT and TPS
-  
-  CAN_msg_CLT_TPS.buf[1]= CLT; // Coolant temp
-  CAN_msg_CLT_TPS.buf[5]= TPS; // TPS value.
-    //Multiplexed Information in byte0
-  switch (MSGcounter) {
-  case 0: //CAN_LEVEL
-    CAN_msg_CLT_TPS.buf[0]= 0x11;
-    break;
-  case 1: //OBD_STEUER
-    if (currentStatus.RPM < 400)
-    {
-      CAN_msg_CLT_TPS.buf[0]= 0x80;
-    }
-    else
-    {
-      CAN_msg_CLT_TPS.buf[0]= 0x86;
-    }
-    break;
-  case 2: //MD_NORM
-    CAN_msg_CLT_TPS.buf[0]= 0xD9;
-    break;
-  default:
-    CAN_msg_CLT_TPS.buf[0]= 0x11;
-    break;
-}
-  Can1.write(CAN_msg_CLT_TPS);
 
   // Send fuel consumption and error lights
   if (CEL < 200){  
@@ -252,10 +226,46 @@ void SendData()   // Send can messages in 50Hz phase from timer interrupt. This 
   CAN_msg_MPG_CEL.buf[2]= pwMSB;  // MSB Fuel Consumption
   CAN_msg_MPG_CEL.buf[3]= tempLight ;  // Overheat light
   Can1.write(CAN_msg_MPG_CEL);
+  
+  //Send CLT and TPS
+  
+  CAN_msg_CLT_TPS.buf[1]= CLT; // Coolant temp
+  CAN_msg_CLT_TPS.buf[5]= TPS; // TPS value.
+    //Multiplexed Information in byte0
+  switch (multiplex) {
+  case 0: //CAN_LEVEL
+    CAN_msg_CLT_TPS.buf[0]= 0x11;
+    break;
+  case 1: //OBD_STEUER
+    if (currentStatus.RPM < 400)
+    {
+      CAN_msg_CLT_TPS.buf[0]= 0x80;
+    }
+    else
+    {
+      CAN_msg_CLT_TPS.buf[0]= 0x86;
+    }
+    break;
+  case 2: //MD_NORM
+    CAN_msg_CLT_TPS.buf[0]= 0xD9;
+    break;
+  default:
+    CAN_msg_CLT_TPS.buf[0]= 0x11;
+    break;
+  }
+  Can1.write(CAN_msg_CLT_TPS);
+
   MSGcounter++;
-  if (MSGcounter >= 3)
+  if (MSGcounter >= 8)
   {
-    MSGcounter = 0;
+    multiplex++;
+      if (multiplex >= 3)
+      {
+        multiplex = 0;
+      }
+    {
+      MSGcounter = 0;
+    }
   }
 }
 
@@ -274,7 +284,7 @@ void setup(){
   
   doRequest = false;
   rRequestCounter = 0;
-  Can1.begin();
+  Can1.begin(false);
   Can1.setBaudRate(500000);
   Can1.setMBFilterProcessing( MB0, 0x153, 0x1FFFFFFF );
   Can1.setMBFilterProcessing( MB1, 0x613, 0x1FFFFFFF );
@@ -282,8 +292,8 @@ void setup(){
   Can1.setMBFilterProcessing( MB3, 0x1F0, 0x1FFFFFFF );
 
   CAN_msg_RPM.len = 8; // 8 bytes in can message
-  CAN_msg_CLT_TPS.len = 7;
-  CAN_msg_MPG_CEL.len = 4;
+  CAN_msg_CLT_TPS.len = 8;
+  CAN_msg_MPG_CEL.len = 8;
   CAN_msg_RPM.id = 0x316; // CAN ID for RPM message is 0x316
   CAN_msg_CLT_TPS.id = 0x329; // CAN ID for CLT and TSP message is 0x329
   CAN_msg_MPG_CEL.id = 0x545; // CAN ID for fuel consumption and CEl light is 0x545
@@ -297,7 +307,6 @@ void setup(){
   CAN_msg_MPG_CEL.buf[5]= 0x00; // not used, but set to zero just in case.
   CAN_msg_MPG_CEL.buf[6]= 0x00; // not used, but set to zero just in case.
   CAN_msg_MPG_CEL.buf[7]= 0x00; // not used, but set to zero just in case.
-  Can1.write(CAN_msg_MPG_CEL);
 
   // set the static values for the other two messages
   CAN_msg_RPM.buf[0]= 0x01;  //bitfield, Bit0 = 1 = terminal 15 on detected, Bit2 = 1 = 1 = the ASC message ASC1 was received within the last 500 ms and contains no plausibility errors
@@ -329,6 +338,7 @@ void setup(){
   responseSent = false;
   newData = false;
   MSGcounter = 0;
+  multiplex = 0;
   ascMSG = false;
   radOutletTemp = 0;
   oilTemp = 0;
