@@ -171,7 +171,7 @@ void requestData() {
     Serial3.write("r");  // Send r to request PWM fan duty
     Serial3.write(0xAA); // $tsCanId placeholder
     Serial3.write(0x30); // Send output channels command 0x30
-    Serial3.write(121);  // LSB offset for receiving PWM fan duty.
+    Serial3.write(123);  // LSB offset for receiving PWM fan duty. (202207 and older speeduino FWs use 121)
     Serial3.write(0);    // MSB offset for receiving PWM fan duty.
     Serial3.write(1);    // LSB length for receiving PWM fan duty.
     Serial3.write(0);    // MSB length for receiving PWM fan duty.
@@ -361,7 +361,7 @@ void setup(){
   PWMFanTimer->resume();
 #endif
 
-  Serial.println ("Version date: 8.5.2025"); // To see from debug serial when is used code created.
+  Serial.println ("Version date: 20.8.2025"); // To see from debug serial when is used code created.
   doRequest = true; // all set. Start requesting data from speeduino
   digitalWrite(AC_pin, LOW);
   digitalWrite(pin_49, LOW);
