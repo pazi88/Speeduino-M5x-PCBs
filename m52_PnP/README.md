@@ -5,6 +5,8 @@ This is folder for Speeduino Compatible PCBs that can be used with BMW M52 engin
 Just take apart the ecu case, remove original board, swap the 88-pin connector from original board to this new speeduino board and install back in case.
 Last step is to carve some openings for the extra connectors and the ecu can be plugged into car.
 
+If you are looking for readymade ECU, this board can be directly purchased from: https://diy-efi.co.uk/product/core4-bmw-m52tu-m54-pnp?
+
 > [!NOTE]  
 > This PCB supports 6-cyl sequential injection and ignition. Only sequential injection is available with arduino mega. And it requires few modifications on FW.
 > See "[Speeduino code for Arduino mega](https://github.com/pazi88/Speeduino-M5x-PCBs/tree/master/m52_PnP#speeduino-code-for-arduino-mega)" -section for instructions. If you don't want to run sequential, just select semi-sequential injection and wasted COP ignition in TS.
