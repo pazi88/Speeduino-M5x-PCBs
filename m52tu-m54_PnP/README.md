@@ -5,10 +5,14 @@ This is folder for Speeduino Compatible PCBs that can be used with BMW M52TU and
 original board in ms42/ms43 ecu case. Just open the 4 bolts in the ecu case, remove original board and replace with this. Last step is
 to carve some openings for the extra connectors and the ecu can be plugged into car.
 
-NOTE! DBW is not supported, so in M54 engine (ms43), you need to change to cable driven throttle body in order to use this.
-M52TU (ms42) has cable driven throttle as backup, so no changes needed in those to use this speeduino board. See "Replacing original DBW throttle body" -chapter
+If you are looking for readymade ECU, this board can be directly purchased from: https://diy-efi.co.uk/product/core4-bmw-m52tu-m54-pnp?
 
-NOTE 2! OBD2 system is not supported in these boards, so if your country requires the car to pass OBD2 tests in MOT check, this board can't be used.
+> [!NOTE]  
+> DBW is not supported, so in M54 engine (ms43), you need to change to cable driven throttle body in order to use this.
+> M52TU (ms42) has cable driven throttle as backup, so no changes needed in those to use this speeduino board. See "Replacing original DBW throttle body" -chapter
+
+> [!NOTE]  
+> OBD2 system is not supported in these boards, so if your country requires the car to pass OBD2 tests in MOT check, this board can't be used.
 
 ![alt text](https://github.com/pazi88/Speeduino-M5x-PCBs/blob/master/m52tu-m54_PnP/Pics/withcase.jpg?raw=true)
 
@@ -52,7 +56,9 @@ EasyEda project link for the PCB: https://easyeda.com/pazi88/ms42-43-compatible-
 - Output pin 31 is wired to spare output at external connector
 - Default tacho ouput is wired to stock ecu connector tacho output and also to external connector. If you have wired in the stock ms42/43 ecu to older car with
   traditional tacho, there is no need for wiring changes. e46/e39/e38 uses tacho trough CAN bus, so this output is not used in those. 
-  NOTE! to use traditional tacho output, the JP6 needs to be soldered to pull-up configuration(1-2) in CORE4
+  NOTE! 
+  > [!NOTE]  
+  > To use traditional tacho output, the JP6 needs to be soldered to pull-up configuration(1-2) in CORE4
 
 ## Speeduino code for Core4
 
